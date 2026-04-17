@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3, History, Activity } from 'lucide-react';
+import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, FileDown, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3, History, Activity, RefreshCw } from 'lucide-react';
 import { format, isValid } from 'date-fns';
 import Card from '../components/UI/Card';
 import EmptyState from '../components/UI/EmptyState';
@@ -111,6 +111,13 @@ export default function Ledger() {
     setActiveProjectId(null);
   };
 
+  const handleReactivate = async () => {
+    if (!selectedProject) return;
+    await updateProject(selectedProject.id, { status: 'active' });
+    toast.success("Smart Ledger Re-activated!");
+    setViewTab('active');
+  };
+
   const getStatusBadge = (status) => {
      if (status === 'active') return <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Active</span>;
      return <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-500/10 text-slate-500 border border-slate-500/20">Closed</span>;
@@ -219,13 +226,18 @@ export default function Ledger() {
                                 </p>
                              </div>
                              <div className="flex items-center gap-2">
-                                <button onClick={handleExport} className="btn bg-white/10 hover:bg-white/20 text-white border-transparent text-sm">
-                                   <FileText size={16} /> Export Claim
+                                <button onClick={handleExport} className="btn bg-amber-500 hover:bg-amber-600 text-slate-900 border-transparent text-sm font-bold shadow-lg shadow-amber-500/20 px-4 py-2">
+                                   <FileDown size={18} className="text-slate-900" /> Download Report
                                 </button>
-                                {selectedProject.status === 'active' && (
+                                {selectedProject.status === 'active' ? (
                                     <button onClick={handleArchive} className="p-2 sm:px-3 sm:py-2 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 transition-colors" title="Mark as Closed">
                                         <Archive size={16} className="sm:hidden" />
                                         <span className="hidden sm:block text-sm font-medium text-red-400">Close Ledger</span>
+                                    </button>
+                                ) : (
+                                    <button onClick={handleReactivate} className="p-2 sm:px-3 sm:py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400 transition-colors border border-emerald-500/30 shadow-sm" title="Reactivate Ledger">
+                                        <RefreshCw size={16} className="sm:hidden" />
+                                        <span className="hidden sm:block text-sm font-medium text-emerald-400">Reactivate</span>
                                     </button>
                                 )}
                              </div>
@@ -273,14 +285,14 @@ export default function Ledger() {
                                        </p>
                                     </div>
 
-                                    {/* Control cluster revealing on hover */}
-                                    <div className="flex items-center gap-3 flex-shrink-0">
-                                       <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <button onClick={() => setEditExpense(exp)} className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200 transition-colors bg-white shadow-sm" title="Edit Item">
-                                             <Edit3 size={14} />
+                                    {/* Control cluster perpetually visible */}
+                                    <div className="flex items-center gap-4 flex-shrink-0">
+                                       <div className="flex items-center gap-1.5 opacity-100 transition-opacity">
+                                          <button onClick={() => setEditExpense(exp)} className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200 transition-colors bg-white shadow-sm" title="Edit Item">
+                                             <Edit3 size={15} />
                                           </button>
-                                          <button onClick={() => setConfirmDeleteExpense(exp.id)} className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors bg-white shadow-sm" title="Delete Item">
-                                             <Trash2 size={14} />
+                                          <button onClick={() => setConfirmDeleteExpense(exp.id)} className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors bg-white shadow-sm" title="Delete Item">
+                                             <Trash2 size={15} />
                                           </button>
                                        </div>
                                        
