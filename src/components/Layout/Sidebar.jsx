@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Receipt, BarChart3, Target, LogOut, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Receipt, BarChart3, Target, LogOut, Briefcase, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { to: '/reports', icon: BarChart3, label: 'Reports' },
   { to: '/projects', icon: Briefcase, label: 'Projects' },
   { to: '/goals', icon: Target, label: 'Goals' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar() {

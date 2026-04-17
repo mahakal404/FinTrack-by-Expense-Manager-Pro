@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Receipt, BarChart3, Target, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Receipt, BarChart3, Target, Briefcase, Settings } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Overview' },
@@ -7,6 +7,7 @@ const navItems = [
   { to: '/reports', icon: BarChart3, label: 'Reports' },
   { to: '/projects', icon: Briefcase, label: 'Projects' },
   { to: '/goals', icon: Target, label: 'Goals' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function BottomNav() {

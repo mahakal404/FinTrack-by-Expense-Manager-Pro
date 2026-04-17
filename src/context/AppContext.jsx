@@ -27,7 +27,7 @@ export function AppProvider({ children }) {
   const [customCategories, setCustomCategories] = useState([]);
   const [goals, setGoals] = useState([]);
   const [projects, setProjects] = useState([]); // <--- NEW collection state
-  const [settings, setSettings] = useState({ monthlyBudget: 12000, currency: '₹' });
+  const [settings, setSettings] = useState({ monthlyBudget: 12000, currency: '₹', dateFormat: 'dd/MM/yyyy' });
   const [loadingData, setLoadingData] = useState(true);
 
   const categories = [...DEFAULT_CATEGORIES, ...customCategories];
@@ -82,9 +82,9 @@ export function AppProvider({ children }) {
     // Settings (users/{uid})
     unsubscribes.push(onSnapshot(doc(db, 'users', uid), (docSnap) => {
       if (docSnap.exists() && docSnap.data().settings) {
-        setSettings(docSnap.data().settings);
+        setSettings({ ...{ monthlyBudget: 12000, currency: '₹', dateFormat: 'dd/MM/yyyy' }, ...docSnap.data().settings });
       } else {
-        setSettings({ monthlyBudget: 12000, currency: '₹' });
+        setSettings({ monthlyBudget: 12000, currency: '₹', dateFormat: 'dd/MM/yyyy' });
       }
     }));
 

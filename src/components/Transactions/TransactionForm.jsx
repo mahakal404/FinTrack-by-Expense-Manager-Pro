@@ -5,10 +5,13 @@ import Modal from '../UI/Modal';
 import { Paperclip, Upload, ChevronDown, Plus } from 'lucide-react';
 import { RenderIcon } from '../../utils/icons';
 import CategoryManager from '../Categories/CategoryManager';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 export default function TransactionForm({ isOpen, onClose, editData = null }) {
-  const { categories, projects, addExpense, updateExpense } = useApp();
+  const { categories, projects, addExpense, updateExpense, settings } = useApp();
   const { uploadFile } = useFirestore('expenses');
   
   const [uploading, setUploading] = useState(false);
@@ -273,15 +276,15 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
                   <button type="button" onClick={() => setDateShortcut(0)} className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none">Today</button>
                 </div>
               </div>
-              <input
-                type="date"
-                min="2000-01-01"
-                max="2099-12-31"
-                className="input"
-                value={form.date}
-                onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
-                required
-              />
+              <div className="relative">
+                 <DatePicker 
+                    selected={new Date(form.date || new Date())} 
+                    onChange={(d) => setForm(p => ({ ...p, date: format(d, 'yyyy-MM-dd') }))} 
+                    dateFormat={settings?.dateFormat || "dd/MM/yyyy"}
+                    className="input w-full"
+                    required
+                 />
+              </div>
             </div>
             <div>
               <label className="label">Note (optional)</label>

@@ -1,18 +1,21 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, CheckCircle2, ChevronRight, Calculator, Archive } from 'lucide-react';
+import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3 } from 'lucide-react';
 import { format } from 'date-fns';
 import Card from '../components/UI/Card';
 import EmptyState from '../components/UI/EmptyState';
+import ConfirmDialog from '../components/UI/ConfirmDialog';
 import Modal from '../components/UI/Modal';
 import toast from 'react-hot-toast';
 import { exportProjectPDF } from '../utils/projectPdfExport';
 
 export default function Projects() {
-  const { projects, projectExpenses, categories, addProject, updateProject } = useApp();
+  const { projects, projectExpenses, categories, addProject, updateProject, deleteProject, settings } = useApp();
   
   const [showForm, setShowForm] = useState(false);
   const [activeProjectId, setActiveProjectId] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: '', payerName: '', openingBalance: '' });
 
@@ -22,19 +25,51 @@ export default function Projects() {
     e.preventDefault();
     setSaving(true);
     try {
-      await addProject({
-        name: form.name.trim(),
-        payerName: form.payerName.trim(),
-        openingBalance: parseFloat(form.openingBalance) || 0,
-        status: 'active'
-      });
-      toast.success("Project Ledger Created!");
+      if (editId) {
+        await updateProject(editId, {
+          name: form.name.trim(),
+          payerName: form.payerName.trim(),
+          openingBalance: parseFloat(form.openingBalance) || 0
+        });
+        toast.success("Project updated successfully!");
+      } else {
+        await addProject({
+          name: form.name.trim(),
+          payerName: form.payerName.trim(),
+          openingBalance: parseFloat(form.openingBalance) || 0,
+          status: 'active'
+        });
+        toast.success("Project Ledger Created!");
+      }
+      
       setShowForm(false);
+      setEditId(null);
       setForm({ name: '', payerName: '', openingBalance: '' });
     } catch (err) {
-      toast.error("Failed to create project");
+      toast.error(editId ? "Failed to update project" : "Failed to create project");
     }
     setSaving(false);
+  };
+
+  const handleEditInit = (e, p) => {
+    e.stopPropagation();
+    setForm({
+      name: p.name,
+      payerName: p.payerName || '',
+      openingBalance: p.openingBalance?.toString() || '0'
+    });
+    setEditId(p.id);
+    setShowForm(true);
+  };
+
+  const executeDelete = async (id) => {
+     try {
+       await deleteProject(id);
+       toast.success("Ledger deleted entirely.");
+       if(activeProjectId === id) setActiveProjectId(null);
+     } catch (err) {
+       toast.error("Failed to delete project");
+     }
   };
 
   const selectedProject = projects.find(p => p.id === activeProjectId);
@@ -48,7 +83,7 @@ export default function Projects() {
 
   const handleExport = () => {
     if (!selectedProject) return;
-    exportProjectPDF(selectedProject, selectedExpenses, categories);
+    exportProjectPDF(selectedProject, selectedExpenses, categories, settings);
   };
 
   const handleArchive = async () => {
@@ -119,7 +154,14 @@ export default function Projects() {
                                       {getStatusBadge(p.status)} {p.payerName}
                                   </p>
                                </div>
-                               <ChevronRight size={18} className={activeProjectId === p.id ? 'text-amber-500' : 'text-slate-300'} />
+                               <div className="flex items-center gap-1">
+                                   <button onClick={(e) => handleEditInit(e, p)} className={`p-1.5 rounded text-amber-600/50 hover:bg-amber-100 hover:text-amber-600`} title="Edit properties">
+                                       <Edit3 size={15} />
+                                   </button>
+                                   <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(p.id); }} className={`p-1.5 rounded text-red-500/50 hover:bg-red-50 hover:text-red-500`} title="Delete strictly">
+                                       <Trash2 size={15} />
+                                   </button>
+                               </div>
                             </div>
                          </div>
                        )
@@ -193,7 +235,7 @@ export default function Projects() {
                                     <div>
                                        <p className="text-sm font-semibold text-slate-800">{cat?.name || exp.category} {exp.provider && <span className="text-amber-600 font-semibold text-xs px-1.5">• {exp.provider}</span>}</p>
                                        <p className="text-xs text-slate-500 mt-1">
-                                          {exp.date ? format(new Date(exp.date), 'dd/MM/yyyy') : '-'}
+                                          {exp.date ? format(new Date(exp.date), settings?.dateFormat || 'dd/MM/yyyy') : '-'}
                                           {exp.title && ` · ${exp.title}`}
                                        </p>
                                     </div>
@@ -237,10 +279,18 @@ export default function Projects() {
               <p className="text-[11px] text-slate-500 mt-1">This acts as the opening balance for your ledger.</p>
            </div>
            <button type="submit" className="w-full btn bg-slate-900 hover:bg-slate-800 text-amber-500 mt-4 rounded-xl py-3 shadow-xl shadow-slate-900/10" disabled={saving}>
-              {saving ? 'Creating...' : 'Open Ledger'}
+              {saving ? (editId ? 'Updating...' : 'Creating...') : (editId ? 'Commit Details' : 'Open Ledger')}
            </button>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => executeDelete(confirmDelete)}
+        title="Delete strict Project Ledger"
+        message="This violently deletes the project container. Do you want to continue?"
+      />
 
     </div>
   );

@@ -7,6 +7,7 @@ import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
 import Goals from './pages/Goals';
 import Projects from './pages/Projects';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/goals" element={<Goals />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </>

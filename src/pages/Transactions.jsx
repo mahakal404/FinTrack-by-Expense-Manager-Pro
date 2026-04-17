@@ -64,7 +64,7 @@ export default function Transactions() {
 
   const exportSelected = () => {
     const selectedExpenses = expenses.filter(e => selected.has(e.id));
-    exportExpensesPDF(selectedExpenses, categories, null, settings.currency);
+    exportExpensesPDF(selectedExpenses, categories, null, settings);
     setSelectionMode(false);
     setSelected(new Set());
   };
@@ -222,7 +222,7 @@ export default function Transactions() {
                       {exp.title} {exp.provider && <span className="text-primary-600 text-xs font-semibold px-2">• {exp.provider}</span>}
                     </p>
                     <p className="text-xs text-slate-400 truncate">
-                      {exp.date ? format(new Date(exp.date), 'dd/MM/yyyy') : '—'}
+                      {exp.date ? format(new Date(exp.date), settings.dateFormat || 'dd/MM/yyyy') : '—'}
                       {exp.note && ` · ${exp.note}`}
                     </p>
                   </div>

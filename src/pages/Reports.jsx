@@ -78,18 +78,14 @@ export default function Reports() {
         .filter(e => e.date === dateStr)
         .reduce((sum, e) => sum + (e.amount || 0), 0);
       data.push({
-        date: format(date, 'dd/MM/yyyy'),
+        date: format(date, settings.dateFormat || 'dd/MM/yyyy'),
         amount: total,
       });
     }
     return data;
-  }, [expenses]);
+  }, [expenses, settings.dateFormat]);
 
   const totalFiltered = rangeFilteredExpenses.reduce((s, e) => s + (e.amount || 0), 0);
-
-  const handleExport = () => {
-    exportExpensesPDF(rangeFilteredExpenses, categories, null, settings.currency);
-  };
 
   const chartTooltipStyle = {
     background: 'white',
@@ -130,9 +126,8 @@ export default function Reports() {
               </button>
             ))}
           </div>
-          <button onClick={handleExport} className="btn btn-outline btn-sm">
-            <FileText size={14} />
-            Export
+          <button onClick={() => exportExpensesPDF(rangeFilteredExpenses, categories, null, settings)} className="btn btn-outline btn-sm">
+            <Download size={14} /> Export Report
           </button>
         </div>
       </div>
