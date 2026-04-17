@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import Modal from '../UI/Modal';
 import ConfirmDialog from '../UI/ConfirmDialog';
-import { Trash2 } from 'lucide-react';
+import { Trash2, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function SalaryModal({ isOpen, onClose }) {
   const { salary, addSalary, updateSalary, deleteSalary, settings, updateSettings } = useApp();
@@ -12,10 +13,10 @@ export default function SalaryModal({ isOpen, onClose }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const currentSalary = salary[0]; // most recent salary entry
+  const now = new Date();
 
   useEffect(() => {
     if (isOpen) {
-      const now = new Date();
       if (currentSalary) {
         setForm({
           amount: currentSalary.amount?.toString() || '',
@@ -35,7 +36,7 @@ export default function SalaryModal({ isOpen, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.amount && !budget) return;
+    if (!form.amount && budget === '') return;
 
     setSaving(true);
     try {
@@ -54,12 +55,17 @@ export default function SalaryModal({ isOpen, onClose }) {
       }
 
       if (budget !== '') {
-        await updateSettings({ monthlyBudget: parseFloat(budget) || 0 });
+        const parsedBudget = parseFloat(budget);
+        if (!isNaN(parsedBudget)) {
+          await updateSettings({ monthlyBudget: parsedBudget });
+        }
       }
 
+      toast.success("Settings updated successfully!");
       onClose();
     } catch (err) {
       console.error('Save salary/budget failed:', err);
+      toast.error("Failed to save changes.");
     }
     setSaving(false);
   };
@@ -67,8 +73,10 @@ export default function SalaryModal({ isOpen, onClose }) {
   const handleDelete = async (id) => {
     try {
       await deleteSalary(id);
+      toast.success("Salary entry deleted.");
     } catch (err) {
       console.error('Delete salary failed:', err);
+      toast.error("Failed to delete entry.");
     }
   };
 
@@ -77,109 +85,163 @@ export default function SalaryModal({ isOpen, onClose }) {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  const suggestedBudget = form.amount ? (parseFloat(form.amount) * 0.8) : null;
+
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} title="Set Monthly Salary">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="label">Monthly Salary (₹)</label>
-            <input
-              type="number"
-              className="input"
-              placeholder="e.g. 50000"
-              value={form.amount}
-              onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
-              min="0"
-              required
-            />
-            <p className="text-xs text-slate-400 mt-1">
-              Update anytime — your balance recalculates instantly.
-            </p>
+      {/* We apply a hidden title in the base Modal component, and override the internal wrapper with our custom styles. */}
+      {/* Since the base Modal is bg-white, we inject negative margins to overlap it exactly if possible, or visually box it well. */}
+      <Modal isOpen={isOpen} onClose={onClose} title=" " size="md">
+        <div className="bg-slate-900 rounded-xl overflow-hidden shadow-2xl relative border border-slate-700/60 -mx-4 -my-4 sm:-mx-6 sm:-my-6 p-4 sm:p-6 mb-0">
+          
+          <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+            <TrendingUp size={120} className="text-emerald-500" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Month</label>
-              <select
-                className="input"
-                value={form.month}
-                onChange={e => setForm(p => ({ ...p, month: e.target.value }))}
-              >
-                {months.map((m, i) => (
-                  <option key={i} value={i + 1}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="label">Year</label>
-              <input
-                type="number"
-                className="input"
-                value={form.year}
-                onChange={e => setForm(p => ({ ...p, year: e.target.value }))}
-                min="2020"
-                max="2030"
-              />
-            </div>
+          <div className="mb-6 relative z-10">
+             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <TrendingUp size={18} />
+                </div>
+                Financial Planning
+             </h2>
+             <p className="text-sm text-slate-400 mt-1">Manage your active income and monthly budgets safely.</p>
           </div>
 
-          <div>
-            <label className="label">Monthly Budget (₹)</label>
-            <input
-              type="number"
-              className="input"
-              placeholder="e.g. 12000"
-              value={budget}
-              onChange={e => setBudget(e.target.value)}
-              min="0"
-            />
-            <p className="text-xs text-slate-400 mt-1">
-              Set a budget to get spending warnings at 80%.
-            </p>
-          </div>
-
-          {/* Past entries */}
-          {salary.length > 0 && (
-            <div className="border-t border-slate-100 pt-3">
-              <p className="text-xs font-medium text-slate-500 mb-2">Recent salary entries</p>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {salary.map(s => (
-                  <div key={s.id} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
-                    <div>
-                      <span className="text-sm font-medium text-slate-700">₹{s.amount?.toLocaleString()}</span>
-                      <span className="text-xs text-slate-400 ml-2">
-                        {months[s.month - 1]} {s.year}
-                      </span>
+          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+            {/* Salary Section */}
+            <div className="bg-slate-800/80 rounded-xl p-4 border border-slate-700/50">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Monthly Salary (₹)</label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500 font-semibold">₹</div>
+                    <input
+                        type="number"
+                        className="w-full bg-slate-900 border border-slate-700 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-white rounded-lg pl-8 pr-3 py-2.5 text-lg"
+                        placeholder="0.00"
+                        value={form.amount}
+                        onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
+                        min="0"
+                        required
+                    />
+                </div>
+                {suggestedBudget !== null && !isNaN(suggestedBudget) && suggestedBudget > 0 && (
+                    <div className="mt-2.5 flex items-start gap-2 bg-emerald-500/10 text-emerald-400 p-2 rounded-lg text-sm font-medium animate-fade-in border border-emerald-500/20">
+                        <Sparkles size={16} className="shrink-0 mt-0.5" />
+                        <div>
+                           <span>Suggested Budget (80%): ₹{(suggestedBudget).toLocaleString()}</span>
+                           <p className="text-[10px] text-emerald-500/80 font-normal leading-tight mt-0.5">Automatically calculates 80% to enforce safe 20% saving margins natively.</p>
+                        </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(s.id)}
-                      className="p-1.5 text-slate-400 hover:text-danger-500 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
+                )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Month</label>
+                <select
+                  className="w-full bg-slate-800 border border-slate-700 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-white rounded-lg px-3 py-2.5"
+                  value={form.month}
+                  onChange={e => setForm(p => ({ ...p, month: e.target.value }))}
+                >
+                  {months.map((m, i) => (
+                    <option key={i} value={i + 1}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Year</label>
+                <input
+                  type="number"
+                  className="w-full bg-slate-800 border border-slate-700 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-white rounded-lg px-3 py-2.5"
+                  value={form.year}
+                  onChange={e => setForm(p => ({ ...p, year: e.target.value }))}
+                  min="2020"
+                  max="2030"
+                />
               </div>
             </div>
-          )}
 
-          <div className="flex gap-3 pt-2 justify-end border-t border-slate-100">
-            <button type="button" onClick={onClose} className="btn btn-outline">Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : currentSalary ? 'Update Salary' : 'Set Salary'}
-            </button>
-          </div>
-        </form>
+            {/* Budget Section */}
+            <div className="bg-slate-800/80 rounded-xl p-4 border border-slate-700/50 text-slate-100">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target Monthly Budget</label>
+                <div className="flex gap-2">
+                    <input
+                        type="number"
+                        className="w-full bg-slate-900 border border-slate-700 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-white rounded-lg px-3 py-2"
+                        placeholder="e.g. 12000"
+                        value={budget}
+                        onChange={e => setBudget(e.target.value)}
+                        min="0"
+                    />
+                     <button type="button" onClick={() => { if(suggestedBudget) setBudget(suggestedBudget.toString()) }} className="bg-slate-700 hover:bg-emerald-600/90 text-xs font-semibold text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap border border-slate-600">Use 80%</button>
+                </div>
+                <div className="mt-2.5 flex items-start gap-1.5 text-[11px] text-slate-500 leadings-tight">
+                    <AlertCircle size={12} className="shrink-0 mt-0.5" />
+                    <span>Your dashboard will immediately transition to a warning state when expenses exceed 80% of this budget.</span>
+                </div>
+            </div>
+
+            {/* Past entries mini-cards */}
+            {salary.length > 0 && (
+              <div className="pt-2">
+                <p className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-3">Recent Salary Records</p>
+                <div className="space-y-2.5 max-h-40 overflow-y-auto pr-1 stylish-scroll">
+                  {salary.map(s => (
+                    <div key={s.id} className="group flex items-center justify-between bg-slate-800 border border-slate-700/60 rounded-xl pl-4 pr-2 py-2.5 hover:border-slate-600 transition-colors shadow-sm">
+                      <div className="flex flex-col">
+                        <span className="text-[15px] font-bold text-slate-100 leading-tight">₹{s.amount?.toLocaleString()}</span>
+                        <span className="text-[11px] uppercase tracking-wider text-emerald-500/80 font-medium">
+                          {months[s.month - 1]} {s.year}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete(s.id)}
+                        className="p-2 bg-slate-700/50 rounded-lg text-slate-400 opacity-80 group-hover:opacity-100 hover:text-white hover:bg-red-500/80 transition-all shadow-[0_2px_10px_rgba(239,68,68,0)] hover:shadow-[0_2px_10px_rgba(239,68,68,0.4)]"
+                        title="Delete Record"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4 justify-end">
+              <button type="button" onClick={onClose} className="px-5 py-2.5 bg-slate-800 text-slate-300 font-medium rounded-xl hover:bg-slate-700 hover:text-white transition-colors">Close</button>
+              <button type="submit" className="px-6 py-2.5 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-400 shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] transition-all transform hover:-translate-y-px" disabled={saving}>
+                {saving ? 'Saving...' : currentSalary ? 'Commit Changes' : 'Initialize Plan'}
+              </button>
+            </div>
+          </form>
+        </div>
       </Modal>
 
       <ConfirmDialog
         isOpen={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
         onConfirm={() => handleDelete(confirmDelete)}
-        title="Delete Salary Entry"
-        message="This will remove the salary record. Your balance will be recalculated."
+        title="Delete Record"
+        message="This removes the historical salary record. Dashboard balances will heavily recalculate instantly."
       />
+
+       <style>{`
+          .stylish-scroll::-webkit-scrollbar {
+             width: 4px;
+          }
+          .stylish-scroll::-webkit-scrollbar-track {
+             background: #1e293b;
+             border-radius: 4px;
+          }
+          .stylish-scroll::-webkit-scrollbar-thumb {
+             background: #334155;
+             border-radius: 4px;
+          }
+          .stylish-scroll::-webkit-scrollbar-thumb:hover {
+             background: #475569;
+          }
+       `}</style>
     </>
   );
 }

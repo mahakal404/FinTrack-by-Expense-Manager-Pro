@@ -5,6 +5,7 @@ import Modal from '../UI/Modal';
 import { Paperclip, Upload, ChevronDown, Plus } from 'lucide-react';
 import { RenderIcon } from '../../utils/icons';
 import CategoryManager from '../Categories/CategoryManager';
+import toast from 'react-hot-toast';
 
 export default function TransactionForm({ isOpen, onClose, editData = null }) {
   const { categories } = useApp();
@@ -87,12 +88,15 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
 
       if (editData) {
         await updateExpense(editData.id, data);
+        toast.success("Transaction updated!");
       } else {
         await addExpense(data);
+        toast.success("Transaction recorded!");
       }
       onClose();
     } catch (err) {
       console.error('Save failed:', err);
+      toast.error("An error occurred during save.");
     }
     setSaving(false);
   };
