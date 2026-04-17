@@ -23,6 +23,7 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
     amount: '',
     date: new Date().toISOString().split('T')[0],
     category: 'food',
+    provider: '',
     note: '',
     receiptUrl: '',
   });
@@ -34,6 +35,7 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
         amount: editData.amount?.toString() || '',
         date: editData.date || new Date().toISOString().split('T')[0],
         category: editData.category || 'food',
+        provider: editData.provider || '',
         note: editData.note || '',
         receiptUrl: editData.receiptUrl || '',
       });
@@ -43,6 +45,7 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
         amount: '',
         date: new Date().toISOString().split('T')[0],
         category: categories.length > 0 ? categories[0].id : 'food',
+        provider: '',
         note: '',
         receiptUrl: '',
       });
@@ -82,6 +85,7 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
       const data = {
         ...form,
         amount: parseFloat(form.amount),
+        provider: ['mobile_recharge', 'ai_tools', 'subscriptions'].includes(form.category) ? form.provider : '',
         // If they pick a category that got deleted, default to first available
         category: categories.find(c => c.id === form.category) ? form.category : categories[0].id,
       };
@@ -194,6 +198,35 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
                 </div>
               )}
             </div>
+            
+            {/* Conditional Sub-Categories */}
+            {form.category === 'mobile_recharge' && (
+              <div className="col-span-2">
+                <label className="label">Operator</label>
+                <select className="input" value={form.provider} onChange={e => setForm(p => ({ ...p, provider: e.target.value }))} required>
+                   <option value="">Select Operator...</option>
+                   {['Jio', 'Vi', 'Airtel', 'BSNL', 'Others'].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+            )}
+            {form.category === 'ai_tools' && (
+              <div className="col-span-2">
+                <label className="label">AI Service</label>
+                <select className="input" value={form.provider} onChange={e => setForm(p => ({ ...p, provider: e.target.value }))} required>
+                   <option value="">Select Tool...</option>
+                   {['ChatGPT', 'Claude', 'Gemini', 'Replit', 'Midjourney', 'Others'].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+            )}
+            {form.category === 'subscriptions' && (
+              <div className="col-span-2">
+                <label className="label">Plan Provider</label>
+                <select className="input" value={form.provider} onChange={e => setForm(p => ({ ...p, provider: e.target.value }))} required>
+                   <option value="">Select Service...</option>
+                   {['Netflix', 'Spotify', 'Amazon Prime', 'YouTube Premium', 'Apple Music', 'Others'].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

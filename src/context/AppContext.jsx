@@ -12,6 +12,9 @@ const DEFAULT_CATEGORIES = [
   { id: 'rent', name: 'Rent', icon: 'Home', color: '#8b5cf6', isDefault: true },
   { id: 'travel', name: 'Travel', icon: 'Car', color: '#3b82f6', isDefault: true },
   { id: 'health', name: 'Health', icon: 'HeartPulse', color: '#ef4444', isDefault: true },
+  { id: 'mobile_recharge', name: 'Mobile Recharge', icon: 'Smartphone', color: '#06b6d4', isDefault: true },
+  { id: 'ai_tools', name: 'AI & Digital Tools', icon: 'Sparkles', color: '#8b5cf6', isDefault: true },
+  { id: 'subscriptions', name: 'Subscriptions & Premiums', icon: 'Repeat', color: '#f59e0b', isDefault: true },
   { id: 'others', name: 'Others', icon: 'Package', color: '#64748b', isDefault: true },
 ];
 

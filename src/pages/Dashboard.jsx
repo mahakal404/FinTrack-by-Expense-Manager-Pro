@@ -279,7 +279,9 @@ export default function Dashboard() {
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-slate-700">{cat?.name || exp.category}</p>
+                        <p className="text-sm font-medium text-slate-700">
+                          {cat?.name || exp.category} {exp.provider && <span className="text-primary-600 font-semibold">• {exp.provider}</span>}
+                        </p>
                         <p className="text-xs text-slate-400">
                           {exp.date ? format(new Date(exp.date), 'dd/MM/yyyy') : '—'} · {exp.note || exp.title}
                         </p>
