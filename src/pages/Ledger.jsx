@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, FileDown, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3, History, Activity, RefreshCw } from 'lucide-react';
+import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, FileDown, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3, History, Activity, RefreshCw, AlertTriangle } from 'lucide-react';
 import { format, isValid } from 'date-fns';
 import Card from '../components/UI/Card';
 import EmptyState from '../components/UI/EmptyState';
@@ -24,6 +24,7 @@ export default function Ledger() {
   const [viewTab, setViewTab] = useState('active');
   const [exporting, setExporting] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(null);
 
   // Nested Expense Edit state
   const [editExpense, setEditExpense] = useState(null);
@@ -108,17 +109,23 @@ export default function Ledger() {
     try {
       exportLedgerPDF(selectedProject, selectedExpenses, categories, settings);
     } catch (err) {
-      toast.error("Failed generating document");
+      toast.error(`Export Error: ${err.message}`);
       console.error(err);
     }
     setExporting(false);
   };
 
-  const handleArchive = async () => {
-    if (!selectedProject || !window.confirm("Close this ledger? You won't be able to assign new transactions to it.")) return;
-    await updateProject(selectedProject.id, { status: 'closed' });
-    toast.success("Ledger designated to History");
+  const handleArchive = () => {
+    if (!selectedProject) return;
+    setConfirmArchive(selectedProject.id);
+  };
+  
+  const executeArchive = async () => {
+    if (!confirmArchive) return;
+    await updateProject(confirmArchive, { status: 'closed' });
+    toast.success("Ledger moved to History successfully!");
     setActiveProjectId(null);
+    setConfirmArchive(null);
   };
 
   const handleReactivate = async () => {
@@ -364,6 +371,29 @@ export default function Ledger() {
         title="Delete strict Ledger"
         message="This violently deletes the ledger container. Do you want to continue?"
       />
+
+      {/* Custom Archive Modal */}
+      {!!confirmArchive && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in" style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)' }} onClick={() => setConfirmArchive(null)}>
+          <div className="bg-white rounded-3xl shadow-2xl shadow-indigo-900/20 w-full max-w-sm overflow-hidden animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <div className="p-8 text-center bg-slate-900 relative">
+               <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center mb-4 border border-amber-500/30">
+                  <AlertTriangle size={32} />
+               </div>
+               <h3 className="text-xl font-bold text-white mb-2">Archive this Ledger?</h3>
+               <p className="text-sm text-slate-400">You can always reactivate it from the History tab.</p>
+            </div>
+            <div className="p-6 flex items-center gap-3 bg-white">
+               <button onClick={() => setConfirmArchive(null)} className="flex-1 btn bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-xl border-transparent transition-colors">
+                 Cancel
+               </button>
+               <button onClick={executeArchive} className="flex-1 btn bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl border-transparent shadow-lg shadow-amber-500/30 transition-all">
+                 Yes, Close Ledger
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={!!confirmDeleteExpense}

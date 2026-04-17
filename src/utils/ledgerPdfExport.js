@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { NotoSansRegular } from './fonts/NotoSans-Regular-normal.js';
 import { NotoSansBold } from './fonts/NotoSans-Bold-bold.js';
@@ -12,8 +12,9 @@ function registerNotoSansFont(doc) {
 }
 
 export const exportLedgerPDF = (project, expenses, categories, settings = {}) => {
-  const doc = new jsPDF();
-  registerNotoSansFont(doc);
+  try {
+    const doc = new jsPDF();
+    registerNotoSansFont(doc);
   const currencySymbol = settings.currency || '₹';
   const displayFormat = settings.dateFormat || 'dd/MM/yyyy';
   
@@ -85,30 +86,33 @@ export const exportLedgerPDF = (project, expenses, categories, settings = {}) =>
     ];
   });
 
-  doc.autoTable({
-    startY,
-    head: [['DATE', 'CATEGORY / PROVIDER', 'ITEM DESCRIPTION', 'AMOUNT']],
-    body: tableData,
-    theme: 'grid',
-    headStyles: {
-      fillColor: [15, 23, 42],
-      textColor: [245, 158, 11], // amber text on midnight blue head
-      fontStyle: 'bold',
-      fontSize: 9
-    },
-    styles: {
-      font: 'NotoSans',
-      fontSize: 9,
-      cellPadding: 4,
-      textColor: [71, 85, 105], // slate-600
-    },
-    columnStyles: {
-      3: { halign: 'right', fontStyle: 'bold' } // align amount to right
-    },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252] // slate-50
-    }
-  });
+    autoTable(doc, {
+      startY,
+      head: [['DATE', 'CATEGORY / PROVIDER', 'ITEM DESCRIPTION', 'AMOUNT']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [15, 23, 42],
+        textColor: [245, 158, 11], // amber text on midnight blue head
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      styles: {
+        font: 'NotoSans',
+        fontSize: 9,
+        cellPadding: 4,
+        textColor: [71, 85, 105], // slate-600
+      },
+      columnStyles: {
+        3: { halign: 'right', fontStyle: 'bold' } // align amount to right
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252] // slate-50
+      }
+    });
 
-  doc.save(`Project_Claim_${project.name.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    doc.save(`Project_Claim_${project.name.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  } catch (error) {
+    throw new Error(error.message || "Failed to embed PDF layout or unresolvable unicode font logic.");
+  }
 }
