@@ -209,7 +209,7 @@ export default function Ledger() {
                                <div>
                                   <h3 className={`font-bold ${activeProjectId === p.id ? 'text-amber-800' : 'text-slate-800'} line-clamp-1`}>{p.name}</h3>
                                   <p className="text-xs font-medium text-slate-500 flex items-center gap-1.5 mt-1">
-                                      {getStatusBadge(p.status)} {p.payerName}
+                                      {getStatusBadge(p.status)} {p.payerName && <span>· {p.payerName}</span>}
                                   </p>
                                </div>
                                <div className="flex items-center gap-1">
@@ -243,9 +243,11 @@ export default function Ledger() {
                              <div>
                                 {getStatusBadge(selectedProject.status)}
                                 <h2 className="text-2xl font-bold text-slate-50 mt-2">{selectedProject.name}</h2>
-                                <p className="text-amber-400 font-medium text-sm flex items-center gap-1.5 mt-1">
-                                    Payer: {selectedProject.payerName}
-                                </p>
+                                {selectedProject.payerName && (
+                                   <p className="text-amber-400 font-medium text-sm flex items-center gap-1.5 mt-1">
+                                       Payer: {selectedProject.payerName}
+                                   </p>
+                                )}
                              </div>
                              <div className="flex items-center gap-2">
                                 <button onClick={handleExport} disabled={exporting} className="btn bg-amber-500 hover:bg-amber-600 text-slate-900 border-transparent text-sm font-bold shadow-lg shadow-amber-500/20 px-4 py-2 flex items-center gap-2 disabled:opacity-50">
@@ -268,7 +270,7 @@ export default function Ledger() {
                           {/* 3 Column Stats */}
                           <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
                               <div>
-                                 <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><TrendingUp size={12} className="text-emerald-400" /> Funds Received</p>
+                                 <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><TrendingUp size={12} className="text-emerald-400" /> Funds Received ({settings?.currency || '₹'})</p>
                                  <p className="text-lg sm:text-2xl font-bold">{settings?.currency || '₹'}{(selectedProject.openingBalance || 0).toLocaleString('en-IN')}</p>
                               </div>
                               <div>
@@ -350,8 +352,8 @@ export default function Ledger() {
               <input type="text" className="input bg-slate-50" placeholder="e.g. Website Redesign" value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} required />
            </div>
            <div>
-              <label className="label">Client / Payer Name</label>
-              <input type="text" className="input bg-slate-50" placeholder="e.g. Acme Corp" value={form.payerName} onChange={e => setForm(p => ({...p, payerName: e.target.value}))} required />
+              <label className="label">Client / Payer Name <span className="text-slate-400 font-normal text-[11px]">(Optional)</span></label>
+              <input type="text" className="input bg-slate-50" placeholder="e.g. Acme Corp" value={form.payerName} onChange={e => setForm(p => ({...p, payerName: e.target.value}))} />
            </div>
            <div>
               <label className="label text-emerald-600 font-semibold">Funds Received ({settings?.currency || '₹'})</label>
