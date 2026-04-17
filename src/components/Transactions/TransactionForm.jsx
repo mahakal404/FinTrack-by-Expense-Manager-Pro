@@ -241,24 +241,18 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
 
           {/* Project Assigner Toggle */}
           <div className="col-span-2 bg-amber-50/50 rounded-xl p-3 border border-amber-500/20">
-             <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-sm font-semibold text-amber-700">Assign to Project?</span>
-                <input 
-                  type="checkbox" 
-                  checked={form.isProject} 
-                  onChange={e => setForm(p => ({ ...p, isProject: e.target.checked, projectId: '' }))} 
-                  className="rounded text-amber-500 border-amber-300 focus:ring-amber-500 w-4 h-4 cursor-pointer" 
-                />
-             </label>
-             {form.isProject && (
-                <div className="mt-3">
-                   <select 
-                      className="input border-amber-300 focus:border-amber-500 text-sm bg-white" 
-                      value={form.projectId} 
-                      onChange={e => setForm(p => ({...p, projectId: e.target.value}))} 
-                      required
-                   >
-                      <option value="">Select an active project...</option>
+              <div className="flex items-center justify-between mb-2">
+                 <label className="label mb-0 flex items-center gap-1.5"><Briefcase size={14} className="text-amber-500" /> Assign to Smart Ledger?</label>
+                 <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer" checked={form.isProject} onChange={e => setForm(p => ({ ...p, isProject: e.target.checked }))} />
+                    <label className="toggle-label block overflow-hidden h-5 rounded-full bg-slate-300 cursor-pointer"></label>
+                 </div>
+              </div>
+              
+              {form.isProject && (
+                 <div className="animate-slide-down mt-3 space-y-2">
+                    <select className="input focus:ring-amber-500 focus:border-amber-500 bg-amber-50/30" value={form.projectId} onChange={e => setForm(p => ({ ...p, projectId: e.target.value }))} required={form.isProject}>
+                       <option value="">Select an Active Ledger...</option>
                       {projects.filter(p => p.status === 'active').map(p => (
                          <option key={p.id} value={p.id}>{p.name} ({p.payerName})</option>
                       ))}

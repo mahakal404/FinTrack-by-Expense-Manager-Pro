@@ -1,12 +1,9 @@
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import AppLayout from './components/Layout/AppLayout';
-import ProtectedRoute from './components/Layout/ProtectedRoute';
-import Dashboard from './pages/Dashboard';
-import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
 import Goals from './pages/Goals';
-import Projects from './pages/Projects';
+import Ledger from './pages/Ledger';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 
@@ -18,9 +15,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/transactions" element={<Transactions />} />
           <Route path="/reports" element={<Reports />} />
-          <Route path="/projects" element={<Projects />} />
+          <Route path="/ledger" element={<Ledger />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

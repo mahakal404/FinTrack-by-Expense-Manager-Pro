@@ -11,7 +11,7 @@ function registerNotoSansFont(doc) {
   doc.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
 }
 
-export const exportProjectPDF = (project, expenses, categories, settings = {}) => {
+export const exportLedgerPDF = (project, expenses, categories, settings = {}) => {
   const doc = new jsPDF();
   registerNotoSansFont(doc);
   const currencySymbol = settings.currency || '₹';
@@ -29,7 +29,7 @@ export const exportProjectPDF = (project, expenses, categories, settings = {}) =
   doc.setTextColor(255);
   doc.setFontSize(22);
   doc.setFont('NotoSans', 'bold');
-  doc.text('PROJECT LEDGER', margin, 20);
+  doc.text('SMART LEDGER', margin, 20);
 
   doc.setFontSize(10);
   doc.setFont('NotoSans', 'normal');
@@ -72,8 +72,13 @@ export const exportProjectPDF = (project, expenses, categories, settings = {}) =
   const tableData = expenses.map(e => {
     const cat = categories.find(c => c.id === e.category);
     const catString = (cat?.name || e.category) + (e.provider ? ` (${e.provider})` : '');
+    
+    // Safety check formatting
+    const d = e.date ? new Date(e.date) : null;
+    const safeDate = (d && !isNaN(d.getTime())) ? format(d, displayFormat) : '-';
+
     return [
-      e.date ? format(new Date(e.date), displayFormat) : '-',
+      safeDate,
       catString,
       e.title || '-',
       `${currencySymbol}${(e.amount || 0).toLocaleString('en-IN')}`

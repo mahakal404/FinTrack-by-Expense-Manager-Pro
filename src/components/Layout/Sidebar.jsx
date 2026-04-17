@@ -3,10 +3,9 @@ import { LayoutDashboard, Receipt, BarChart3, Target, LogOut, Briefcase, Setting
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Overview' },
   { to: '/transactions', icon: Receipt, label: 'Transactions' },
   { to: '/reports', icon: BarChart3, label: 'Reports' },
-  { to: '/projects', icon: Briefcase, label: 'Projects' },
+  { to: '/ledger', icon: Briefcase, label: 'Smart Ledger' },
   { to: '/goals', icon: Target, label: 'Goals' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];

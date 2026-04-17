@@ -1,16 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3 } from 'lucide-react';
-import { format } from 'date-fns';
+import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3, History, Activity } from 'lucide-react';
+import { format, isValid } from 'date-fns';
 import Card from '../components/UI/Card';
 import EmptyState from '../components/UI/EmptyState';
 import ConfirmDialog from '../components/UI/ConfirmDialog';
 import Modal from '../components/UI/Modal';
 import toast from 'react-hot-toast';
-import { exportProjectPDF } from '../utils/projectPdfExport';
+import { exportLedgerPDF } from '../utils/ledgerPdfExport';
+import TransactionForm from '../components/Transactions/TransactionForm';
 
-export default function Projects() {
-  const { projects, projectExpenses, categories, addProject, updateProject, deleteProject, settings } = useApp();
+export default function Ledger() {
+  const { projects, projectExpenses, categories, addProject, updateProject, deleteProject, settings, deleteExpense } = useApp();
   
   const [showForm, setShowForm] = useState(false);
   const [activeProjectId, setActiveProjectId] = useState(null);
@@ -18,8 +19,16 @@ export default function Projects() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: '', payerName: '', openingBalance: '' });
+  
+  // Tab state: 'active' | 'closed'
+  const [viewTab, setViewTab] = useState('active');
+
+  // Nested Expense Edit state
+  const [editExpense, setEditExpense] = useState(null);
+  const [confirmDeleteExpense, setConfirmDeleteExpense] = useState(null);
 
   const activeProjectCount = projects.filter(p => p.status === 'active').length;
+  const closedProjectCount = projects.filter(p => p.status === 'closed').length;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +40,7 @@ export default function Projects() {
           payerName: form.payerName.trim(),
           openingBalance: parseFloat(form.openingBalance) || 0
         });
-        toast.success("Project updated successfully!");
+        toast.success("Ledger updated successfully!");
       } else {
         await addProject({
           name: form.name.trim(),
@@ -39,14 +48,14 @@ export default function Projects() {
           openingBalance: parseFloat(form.openingBalance) || 0,
           status: 'active'
         });
-        toast.success("Project Ledger Created!");
+        toast.success("Smart Ledger Created!");
       }
       
       setShowForm(false);
       setEditId(null);
       setForm({ name: '', payerName: '', openingBalance: '' });
     } catch (err) {
-      toast.error(editId ? "Failed to update project" : "Failed to create project");
+      toast.error(editId ? "Failed to update ledger" : "Failed to create ledger");
     }
     setSaving(false);
   };
@@ -68,7 +77,16 @@ export default function Projects() {
        toast.success("Ledger deleted entirely.");
        if(activeProjectId === id) setActiveProjectId(null);
      } catch (err) {
-       toast.error("Failed to delete project");
+       toast.error("Failed to delete ledger");
+     }
+  };
+
+  const executeDeleteExpense = async (id) => {
+     try {
+       await deleteExpense(id);
+       toast.success("Entry removed securely.");
+     } catch(err) {
+       toast.error("Failed to delete entry.");
      }
   };
 
@@ -79,17 +97,17 @@ export default function Projects() {
   }, [projectExpenses, activeProjectId]);
 
   const totalSpent = selectedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-  const closingBalance = selectedProject ? (selectedProject.openingBalance - totalSpent) : 0;
+  const closingBalance = selectedProject ? ((selectedProject.openingBalance || 0) - totalSpent) : 0;
 
   const handleExport = () => {
     if (!selectedProject) return;
-    exportProjectPDF(selectedProject, selectedExpenses, categories, settings);
+    exportLedgerPDF(selectedProject, selectedExpenses, categories, settings);
   };
 
   const handleArchive = async () => {
-    if (!selectedProject || !window.confirm("Close this project? You won't be able to assign new transactions to it.")) return;
+    if (!selectedProject || !window.confirm("Close this ledger? You won't be able to assign new transactions to it.")) return;
     await updateProject(selectedProject.id, { status: 'closed' });
-    toast.success("Project closed and archived");
+    toast.success("Ledger designated to History");
     setActiveProjectId(null);
   };
 
@@ -97,6 +115,8 @@ export default function Projects() {
      if (status === 'active') return <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Active</span>;
      return <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-500/10 text-slate-500 border border-slate-500/20">Closed</span>;
   };
+
+  const filteredList = projects.filter(p => p.status === viewTab);
 
   return (
     <div className="space-y-6 animate-fade-in pb-20 lg:pb-0">
@@ -109,13 +129,13 @@ export default function Projects() {
                  <Briefcase size={20} className="text-amber-500" />
              </div>
              <div>
-                <h1 className="text-2xl font-bold text-slate-800">Project Ledger</h1>
-                <p className="text-sm text-slate-500 mt-0.5">Isolated specific project budgets</p>
+                <h1 className="text-2xl font-bold text-slate-800">Smart Ledger</h1>
+                <p className="text-sm text-slate-500 mt-0.5">Track isolated custom contracts strictly</p>
              </div>
           </div>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn bg-amber-500 hover:bg-amber-600 text-white border-transparent shadow shadow-amber-500/20 px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors">
-          <Plus size={16} /> Start Project
+        <button onClick={() => { setEditId(null); setForm({ name:'', payerName:'', openingBalance:''}); setShowForm(true); }} className="btn bg-amber-500 hover:bg-amber-600 text-white border-transparent shadow shadow-amber-500/20 px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors">
+          <Plus size={16} /> Open Ledger
         </button>
       </div>
 
@@ -123,29 +143,38 @@ export default function Projects() {
          
          {/* LEFT COLUMN: Project List */}
          <div className="lg:col-span-4 space-y-4">
-             <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Your Projects ({activeProjectCount})</h2>
+             {/* Dynamic Custom Tabs */}
+             <div className="flex bg-slate-100 rounded-xl p-1 mb-2">
+               <button
+                  onClick={() => setViewTab('active')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold rounded-lg transition-all ${viewTab === 'active' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+               >
+                 <Activity size={16} /> Active ({activeProjectCount})
+               </button>
+               <button
+                  onClick={() => setViewTab('closed')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold rounded-lg transition-all ${viewTab === 'closed' ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+               >
+                 <History size={16} /> History ({closedProjectCount})
+               </button>
              </div>
 
-             {projects.length === 0 ? (
+             {filteredList.length === 0 ? (
                  <Card className="p-8 text-center border-dashed border-2 border-slate-200">
                      <div className="w-16 h-16 rounded-full bg-amber-50 mx-auto flex items-center justify-center text-amber-500 mb-4">
                          <Briefcase size={24} />
                      </div>
-                     <h3 className="font-semibold text-slate-800 mb-1">No ledgers yet</h3>
-                     <p className="text-sm text-slate-500">Start tracking external project expenses safely segregated from your main dashboard.</p>
+                     <h3 className="font-semibold text-slate-800 mb-1">No ledgers found</h3>
+                     <p className="text-sm text-slate-500">You don't have any {viewTab} ledgers open presently.</p>
                  </Card>
              ) : (
                 <div className="space-y-3">
-                    {projects.map(p => {
-                       const bSpent = projectExpenses.filter(e => e.projectId === p.id).reduce((sum, e) => sum + (e.amount || 0), 0);
-                       const perc = p.openingBalance > 0 ? (bSpent / p.openingBalance) * 100 : 0;
-                       
+                    {filteredList.map(p => {
                        return (
                          <div 
                             key={p.id} 
                             onClick={() => setActiveProjectId(p.id)}
-                            className={`p-4 rounded-xl border cursor-pointer transition-all ${activeProjectId === p.id ? 'bg-amber-50 border-amber-500 shadow-md shadow-amber-500/10' : 'bg-white border-slate-200 hover:border-amber-300'}`}
+                            className={`p-4 rounded-xl border cursor-pointer transition-all ${activeProjectId === p.id ? 'bg-amber-50 border-amber-500 shadow-md shadow-amber-500/10' : 'bg-white border-slate-200 hover:border-amber-300'} ${p.status === 'closed' ? 'opacity-80 grayscale-[20%]' : ''}`}
                          >
                             <div className="flex items-start justify-between mb-2">
                                <div>
@@ -194,9 +223,9 @@ export default function Projects() {
                                    <FileText size={16} /> Export Claim
                                 </button>
                                 {selectedProject.status === 'active' && (
-                                    <button onClick={handleArchive} className="p-2 sm:px-3 sm:py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors" title="Mark as Closed">
+                                    <button onClick={handleArchive} className="p-2 sm:px-3 sm:py-2 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 transition-colors" title="Mark as Closed">
                                         <Archive size={16} className="sm:hidden" />
-                                        <span className="hidden sm:block text-sm font-medium text-amber-500">Close Ledger</span>
+                                        <span className="hidden sm:block text-sm font-medium text-red-400">Close Ledger</span>
                                     </button>
                                 )}
                              </div>
@@ -206,15 +235,15 @@ export default function Projects() {
                           <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
                               <div>
                                  <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><TrendingUp size={12} className="text-emerald-400" /> Funds Received</p>
-                                 <p className="text-lg sm:text-2xl font-bold">₹{selectedProject.openingBalance?.toLocaleString()}</p>
+                                 <p className="text-lg sm:text-2xl font-bold">{settings?.currency || '₹'}{(selectedProject.openingBalance || 0).toLocaleString('en-IN')}</p>
                               </div>
                               <div>
                                  <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><TrendingDown size={12} className="text-rose-400" /> Total Spent</p>
-                                 <p className="text-lg sm:text-2xl font-bold">₹{totalSpent.toLocaleString()}</p>
+                                 <p className="text-lg sm:text-2xl font-bold">{settings?.currency || '₹'}{totalSpent.toLocaleString('en-IN')}</p>
                               </div>
                               <div>
                                  <p className="text-[10px] sm:text-xs text-amber-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><Calculator size={12} /> Closing Balance</p>
-                                 <p className="text-lg sm:text-2xl font-bold text-amber-500">₹{closingBalance.toLocaleString()}</p>
+                                 <p className="text-lg sm:text-2xl font-bold text-amber-500">{settings?.currency || '₹'}{closingBalance.toLocaleString('en-IN')}</p>
                               </div>
                           </div>
                        </div>
@@ -227,21 +256,38 @@ export default function Projects() {
                     </div>
 
                     {selectedExpenses.length > 0 ? (
-                       <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
+                       <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto w-full">
                            {selectedExpenses.map((exp, i) => {
                               const cat = categories.find(c => c.id === exp.category);
+                              
+                              const dt = exp.date ? new Date(exp.date) : null;
+                              const safeDate = (dt && isValid(dt)) ? format(dt, settings?.dateFormat || 'dd/MM/yyyy') : '-';
+
                               return (
-                                 <div key={exp.id} className="p-4 sm:p-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors animate-slide-up" style={{ animationDelay: `${i * 30}ms` }}>
-                                    <div>
+                                 <div key={exp.id} className="p-4 sm:p-5 group flex items-center justify-between hover:bg-slate-50/50 transition-colors animate-slide-up" style={{ animationDelay: `${i * 30}ms` }}>
+                                    <div className="flex-1 overflow-hidden pr-2">
                                        <p className="text-sm font-semibold text-slate-800">{cat?.name || exp.category} {exp.provider && <span className="text-amber-600 font-semibold text-xs px-1.5">• {exp.provider}</span>}</p>
-                                       <p className="text-xs text-slate-500 mt-1">
-                                          {exp.date ? format(new Date(exp.date), settings?.dateFormat || 'dd/MM/yyyy') : '-'}
+                                       <p className="text-xs text-slate-500 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                                          {safeDate}
                                           {exp.title && ` · ${exp.title}`}
                                        </p>
                                     </div>
-                                    <div className="text-right">
-                                       <p className="text-sm font-bold text-slate-800">₹{exp.amount?.toLocaleString()}</p>
-                                       {exp.receiptUrl && <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full mt-1 inline-block">Has Receipt</span>}
+
+                                    {/* Control cluster revealing on hover */}
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                       <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button onClick={() => setEditExpense(exp)} className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200 transition-colors bg-white shadow-sm" title="Edit Item">
+                                             <Edit3 size={14} />
+                                          </button>
+                                          <button onClick={() => setConfirmDeleteExpense(exp.id)} className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors bg-white shadow-sm" title="Delete Item">
+                                             <Trash2 size={14} />
+                                          </button>
+                                       </div>
+                                       
+                                       <div className="text-right w-20 flex-shrink-0">
+                                          <p className="text-sm font-bold text-slate-800">{settings?.currency || '₹'}{exp.amount?.toLocaleString('en-IN')}</p>
+                                          {exp.receiptUrl && <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full mt-1 inline-block border border-slate-200 shadow-sm">Receipt</span>}
+                                       </div>
                                     </div>
                                  </div>
                               )
@@ -256,14 +302,14 @@ export default function Projects() {
                  </Card>
              ) : (
                  <div className="h-full min-h-[400px] flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
-                     <p className="flex items-center gap-2"><ArrowRight size={16} /> Select a project to view its ledger</p>
+                     <p className="flex items-center gap-2"><ArrowRight size={16} /> Select a ledger to view balances</p>
                  </div>
              )}
          </div>
 
       </div>
 
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Initialize Project" size="md">
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title={editId ? "Update Ledger" : "Initialize Ledger"} size="md">
         <form onSubmit={handleSubmit} className="space-y-4">
            <div>
               <label className="label">Project Title</label>
@@ -274,7 +320,7 @@ export default function Projects() {
               <input type="text" className="input bg-slate-50" placeholder="e.g. Acme Corp" value={form.payerName} onChange={e => setForm(p => ({...p, payerName: e.target.value}))} required />
            </div>
            <div>
-              <label className="label text-emerald-600 font-semibold">Funds Received (₹)</label>
+              <label className="label text-emerald-600 font-semibold">Funds Received ({settings?.currency || '₹'})</label>
               <input type="number" className="input border-emerald-500/30 focus:border-emerald-500 focus:ring-emerald-500" placeholder="0.00" value={form.openingBalance} onChange={e => setForm(p => ({...p, openingBalance: e.target.value}))} required />
               <p className="text-[11px] text-slate-500 mt-1">This acts as the opening balance for your ledger.</p>
            </div>
@@ -288,9 +334,25 @@ export default function Projects() {
         isOpen={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
         onConfirm={() => executeDelete(confirmDelete)}
-        title="Delete strict Project Ledger"
-        message="This violently deletes the project container. Do you want to continue?"
+        title="Delete strict Ledger"
+        message="This violently deletes the ledger container. Do you want to continue?"
       />
+
+      <ConfirmDialog
+        isOpen={!!confirmDeleteExpense}
+        onClose={() => setConfirmDeleteExpense(null)}
+        onConfirm={() => executeDeleteExpense(confirmDeleteExpense)}
+        title="Delete strict Entry"
+        message="This permanently reverses this expenditure from your selected ledger. Proceed?"
+      />
+
+      {!!editExpense && (
+         <TransactionForm 
+            isOpen={!!editExpense}
+            editData={editExpense}
+            onClose={() => setEditExpense(null)}
+         />
+      )}
 
     </div>
   );

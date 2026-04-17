@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { format, subDays, startOfWeek, startOfMonth } from 'date-fns';
+import { format, subDays, startOfWeek, startOfMonth, isValid } from 'date-fns';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell,
@@ -24,7 +24,7 @@ export default function Reports() {
   const rangeFilteredExpenses = useMemo(() => {
     const now = new Date();
     return expenses.filter(e => {
-      if (!e.date) return range === 'all';
+      if (!e.date || !isValid(new Date(e.date))) return range === 'all';
       const d = new Date(e.date);
       if (range === 'week') return d >= startOfWeek(now, { weekStartsOn: 1 });
       if (range === 'month') return d >= startOfMonth(now);
