@@ -10,6 +10,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [successToast, setSuccessToast] = useState('');
   
   const { login, signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -23,12 +24,16 @@ export default function Login() {
     setLoading(true);
 
     try {
+      let user;
       if (isSignUp) {
-        await signup(email, password, name);
+        const res = await signup(email, password, name);
+        user = res.user;
       } else {
-        await login(email, password);
+        const res = await login(email, password);
+        user = res.user;
       }
-      navigate(from, { replace: true });
+      setSuccessToast(`Welcome back, ${user?.displayName || name || 'User'}!`);
+      setTimeout(() => navigate(from, { replace: true }), 1500);
     } catch (err) {
       setError(err.message || 'Failed to authenticate');
     }
@@ -40,8 +45,9 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await loginWithGoogle();
-      navigate(from, { replace: true });
+      const res = await loginWithGoogle();
+      setSuccessToast(`Welcome back, ${res.user?.displayName || 'User'}!`);
+      setTimeout(() => navigate(from, { replace: true }), 1500);
     } catch (err) {
       setError(err.message || 'Google sign-in failed');
     }
@@ -49,7 +55,15 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="min-h-screen bg-slate-900 flex relative">
+      {/* Toast Notification */}
+      {successToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg shadow-emerald-900/50 flex items-center gap-3 animate-in fade-in slide-in-from-top-5">
+          <CheckCircle2 size={20} />
+          <p className="font-medium">{successToast}</p>
+        </div>
+      )}
+
       {/* Left Decorative Side */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-indigo-950 overflow-hidden items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-indigo-950 z-0"></div>
@@ -58,10 +72,8 @@ export default function Login() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-40"></div>
         
         <div className="relative z-10 p-12 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-400 to-emerald-600 mb-8 shadow-xl shadow-emerald-900/50">
-            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="mb-8 flex justify-center">
+            <img src="/app-logo.webp" alt="FinTrack Logo" className="w-[100px] h-auto drop-shadow-xl" />
           </div>
           <h1 className="text-4xl font-bold text-white mb-6">FinTrack Pro</h1>
           <p className="text-slate-300 text-lg max-w-md mx-auto leading-relaxed">

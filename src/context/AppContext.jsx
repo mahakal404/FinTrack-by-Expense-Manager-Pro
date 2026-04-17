@@ -1,4 +1,7 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from './AuthContext';
 
 const AppContext = createContext();
 
@@ -10,143 +13,133 @@ const DEFAULT_CATEGORIES = [
   { id: 'others', name: 'Others', icon: 'Package', color: '#64748b', isDefault: true },
 ];
 
-const LOCAL_STORAGE_KEY = 'expenseManagerProData';
-
-const getInitialState = () => {
-  const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (savedData) {
-    try {
-      const parsed = JSON.parse(savedData);
-      return {
-        expenses: parsed.expenses || [],
-        salary: parsed.salary || [],
-        customCategories: parsed.customCategories || [],
-        categories: [...DEFAULT_CATEGORIES, ...(parsed.customCategories || [])],
-        goals: parsed.goals || [],
-        settings: parsed.settings || { monthlyBudget: 12000, currency: '₹' },
-        loading: false,
-      };
-    } catch (e) {
-      console.error('Failed to parse local storage data', e);
-    }
-  }
-
-  return {
-    expenses: [],
-    salary: [],
-    customCategories: [],
-    categories: DEFAULT_CATEGORIES,
-    goals: [],
-    settings: { monthlyBudget: 12000, currency: '₹' },
-    loading: false,
-  };
-};
-
-function appReducer(state, action) {
-  let newState;
-  switch (action.type) {
-    case 'SET_EXPENSES':
-      newState = { ...state, expenses: action.payload };
-      break;
-    case 'SET_SALARY':
-      newState = { ...state, salary: action.payload };
-      break;
-    case 'SET_CATEGORIES':
-      newState = {
-        ...state,
-        customCategories: action.payload,
-        categories: [...DEFAULT_CATEGORIES, ...action.payload]
-      };
-      break;
-    case 'SET_GOALS':
-      newState = { ...state, goals: action.payload };
-      break;
-    case 'SET_SETTINGS':
-      newState = { ...state, settings: { ...state.settings, ...action.payload } };
-      break;
-    default:
-      return state;
-  }
-
-  // Persist to localStorage on every state change
-  const dataToSave = {
-    expenses: newState.expenses,
-    salary: newState.salary,
-    customCategories: newState.customCategories,
-    goals: newState.goals,
-    settings: newState.settings,
-  };
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
-  return newState;
-}
-
 export function AppProvider({ children }) {
-  const [state, dispatch] = useReducer(appReducer, getInitialState());
+  const { currentUser } = useAuth();
+  
+  const [expenses, setExpenses] = useState([]);
+  const [salary, setSalary] = useState([]);
+  const [customCategories, setCustomCategories] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [settings, setSettings] = useState({ monthlyBudget: 12000, currency: '₹' });
+  const [loadingData, setLoadingData] = useState(true);
 
-  const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+  const categories = [...DEFAULT_CATEGORIES, ...customCategories];
+
+  useEffect(() => {
+    if (!currentUser) {
+      setExpenses([]);
+      setSalary([]);
+      setCustomCategories([]);
+      setGoals([]);
+      setSettings({ monthlyBudget: 12000, currency: '₹' });
+      setLoadingData(false);
+      return;
+    }
+
+    setLoadingData(true);
+    const uid = currentUser.uid;
+    const unsubscribes = [];
+
+    // Expenses
+    const qExpenses = query(collection(db, 'expenses'), where("uid", "==", uid));
+    unsubscribes.push(onSnapshot(qExpenses, (snapshot) => {
+      setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }));
+
+    // Salary
+    const qSalary = query(collection(db, 'salary'), where("uid", "==", uid));
+    unsubscribes.push(onSnapshot(qSalary, (snapshot) => {
+      setSalary(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }));
+
+    // Goals
+    const qGoals = query(collection(db, 'goals'), where("uid", "==", uid));
+    unsubscribes.push(onSnapshot(qGoals, (snapshot) => {
+      setGoals(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }));
+
+    // Custom Categories
+    const qCategories = query(collection(db, 'customCategories'), where("uid", "==", uid));
+    unsubscribes.push(onSnapshot(qCategories, (snapshot) => {
+      setCustomCategories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }));
+
+    // Settings
+    unsubscribes.push(onSnapshot(doc(db, 'settings', uid), (docSnap) => {
+      if (docSnap.exists()) {
+        setSettings({ ...docSnap.data(), uid });
+      } else {
+        setSettings({ monthlyBudget: 12000, currency: '₹' });
+      }
+    }));
+
+    // Resolve initial data loading splash after a brief moment to allow collections to fetch
+    const timer = setTimeout(() => setLoadingData(false), 800);
+
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+      clearTimeout(timer);
+    };
+  }, [currentUser]);
 
   // CRUD Actions
   const addExpense = useCallback(async (expense) => {
-    const newExpense = { ...expense, id: generateId(), createdAt: new Date().toISOString() };
-    dispatch({ type: 'SET_EXPENSES', payload: [newExpense, ...state.expenses] });
-  }, [state.expenses]);
+    if (!currentUser) return;
+    await addDoc(collection(db, 'expenses'), { ...expense, uid: currentUser.uid, createdAt: new Date().toISOString() });
+  }, [currentUser]);
 
   const updateExpense = useCallback(async (id, data) => {
-    const updated = state.expenses.map(e => e.id === id ? { ...e, ...data, updatedAt: new Date().toISOString() } : e);
-    dispatch({ type: 'SET_EXPENSES', payload: updated });
-  }, [state.expenses]);
-
-  const deleteExpense = useCallback(async (id) => {
-    const updated = state.expenses.filter(e => e.id !== id);
-    dispatch({ type: 'SET_EXPENSES', payload: updated });
-  }, [state.expenses]);
-
-  const addSalary = useCallback(async (salary) => {
-    const newSalary = { ...salary, id: generateId(), createdAt: new Date().toISOString() };
-    dispatch({ type: 'SET_SALARY', payload: [newSalary, ...state.salary] });
-  }, [state.salary]);
-
-  const updateSalary = useCallback(async (id, data) => {
-    const updated = state.salary.map(s => s.id === id ? { ...s, ...data, updatedAt: new Date().toISOString() } : s);
-    dispatch({ type: 'SET_SALARY', payload: updated });
-  }, [state.salary]);
-
-  const deleteSalary = useCallback(async (id) => {
-    const updated = state.salary.filter(s => s.id !== id);
-    dispatch({ type: 'SET_SALARY', payload: updated });
-  }, [state.salary]);
-
-  const addGoal = useCallback(async (goal) => {
-    const newGoal = { ...goal, id: generateId(), createdAt: new Date().toISOString() };
-    dispatch({ type: 'SET_GOALS', payload: [newGoal, ...state.goals] });
-  }, [state.goals]);
-
-  const updateGoal = useCallback(async (id, data) => {
-    const updated = state.goals.map(g => g.id === id ? { ...g, ...data, updatedAt: new Date().toISOString() } : g);
-    dispatch({ type: 'SET_GOALS', payload: updated });
-  }, [state.goals]);
-
-  const deleteGoal = useCallback(async (id) => {
-    const updated = state.goals.filter(g => g.id !== id);
-    dispatch({ type: 'SET_GOALS', payload: updated });
-  }, [state.goals]);
-
-  const addCategory = useCallback(async (category) => {
-    const newCategory = { ...category, id: generateId() };
-    dispatch({ type: 'SET_CATEGORIES', payload: [...state.customCategories, newCategory] });
-  }, [state.customCategories]);
-
-  const deleteCategory = useCallback(async (id) => {
-    const updated = state.customCategories.filter(c => c.id !== id);
-    dispatch({ type: 'SET_CATEGORIES', payload: updated });
-  }, [state.customCategories]);
-
-  const updateSettings = useCallback(async (newSettings) => {
-    dispatch({ type: 'SET_SETTINGS', payload: newSettings });
+    await updateDoc(doc(db, 'expenses', id), { ...data, updatedAt: new Date().toISOString() });
   }, []);
 
+  const deleteExpense = useCallback(async (id) => {
+    await deleteDoc(doc(db, 'expenses', id));
+  }, []);
+
+  const addSalary = useCallback(async (sal) => {
+    if (!currentUser) return;
+    await addDoc(collection(db, 'salary'), { ...sal, uid: currentUser.uid, createdAt: new Date().toISOString() });
+  }, [currentUser]);
+
+  const updateSalary = useCallback(async (id, data) => {
+    await updateDoc(doc(db, 'salary', id), { ...data, updatedAt: new Date().toISOString() });
+  }, []);
+
+  const deleteSalary = useCallback(async (id) => {
+    await deleteDoc(doc(db, 'salary', id));
+  }, []);
+
+  const addGoal = useCallback(async (goal) => {
+    if (!currentUser) return;
+    await addDoc(collection(db, 'goals'), { ...goal, uid: currentUser.uid, createdAt: new Date().toISOString() });
+  }, [currentUser]);
+
+  const updateGoal = useCallback(async (id, data) => {
+    await updateDoc(doc(db, 'goals', id), { ...data, updatedAt: new Date().toISOString() });
+  }, []);
+
+  const deleteGoal = useCallback(async (id) => {
+    await deleteDoc(doc(db, 'goals', id));
+  }, []);
+
+  const addCategory = useCallback(async (category) => {
+    if (!currentUser) return;
+    await addDoc(collection(db, 'customCategories'), { ...category, uid: currentUser.uid });
+  }, [currentUser]);
+
+  const deleteCategory = useCallback(async (id) => {
+    await deleteDoc(doc(db, 'customCategories', id));
+  }, []);
+
+  const updateSettings = useCallback(async (newSettings) => {
+    if (!currentUser) return;
+    const merged = { ...settings, ...newSettings, uid: currentUser.uid };
+    await setDoc(doc(db, 'settings', currentUser.uid), merged);
+    setSettings(merged);
+  }, [currentUser, settings]);
+
   const value = {
-    ...state,
+    expenses, salary, customCategories, categories, goals, settings, loading: loadingData,
     addExpense, updateExpense, deleteExpense,
     addSalary, updateSalary, deleteSalary,
     addGoal, updateGoal, deleteGoal,
