@@ -47,7 +47,7 @@ export default function Reports() {
         return s.month === (date.getMonth() + 1) && s.year === date.getFullYear();
       });
       days.push({
-        date: format(date, 'd MMM'),
+        date: format(date, 'dd/MM/yyyy'),
         Expense: dayExpenses,
         Income: i === 0 ? (dayIncome?.amount || 0) : 0,
       });
@@ -78,7 +78,7 @@ export default function Reports() {
         .filter(e => e.date === dateStr)
         .reduce((sum, e) => sum + (e.amount || 0), 0);
       data.push({
-        date: format(date, 'd MMM'),
+        date: format(date, 'dd/MM/yyyy'),
         amount: total,
       });
     }

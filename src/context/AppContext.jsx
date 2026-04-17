@@ -3,6 +3,8 @@ import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
 
+const stripUndefined = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+
 const AppContext = createContext();
 
 const DEFAULT_CATEGORIES = [
@@ -85,11 +87,17 @@ export function AppProvider({ children }) {
   // CRUD Actions
   const addExpense = useCallback(async (expense) => {
     if (!currentUser) return;
-    await addDoc(collection(db, 'expenses'), { ...expense, uid: currentUser.uid, createdAt: new Date().toISOString() });
+    try {
+      const payload = stripUndefined({ ...expense, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      await addDoc(collection(db, 'expenses'), payload);
+    } catch (e) {
+      console.error("Firestore Error (addExpense):", e);
+    }
   }, [currentUser]);
 
   const updateExpense = useCallback(async (id, data) => {
-    await updateDoc(doc(db, 'expenses', id), { ...data, updatedAt: new Date().toISOString() });
+    const payload = stripUndefined({ ...data, updatedAt: new Date().toISOString() });
+    await updateDoc(doc(db, 'expenses', id), payload);
   }, []);
 
   const deleteExpense = useCallback(async (id) => {
@@ -98,11 +106,15 @@ export function AppProvider({ children }) {
 
   const addSalary = useCallback(async (sal) => {
     if (!currentUser) return;
-    await addDoc(collection(db, 'salary'), { ...sal, uid: currentUser.uid, createdAt: new Date().toISOString() });
+    try {
+      const payload = stripUndefined({ ...sal, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      await addDoc(collection(db, 'salary'), payload);
+    } catch (e) { console.error("Firestore Error:", e); }
   }, [currentUser]);
 
   const updateSalary = useCallback(async (id, data) => {
-    await updateDoc(doc(db, 'salary', id), { ...data, updatedAt: new Date().toISOString() });
+    const payload = stripUndefined({ ...data, updatedAt: new Date().toISOString() });
+    await updateDoc(doc(db, 'salary', id), payload);
   }, []);
 
   const deleteSalary = useCallback(async (id) => {
@@ -111,11 +123,15 @@ export function AppProvider({ children }) {
 
   const addGoal = useCallback(async (goal) => {
     if (!currentUser) return;
-    await addDoc(collection(db, 'goals'), { ...goal, uid: currentUser.uid, createdAt: new Date().toISOString() });
+    try {
+      const payload = stripUndefined({ ...goal, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      await addDoc(collection(db, 'goals'), payload);
+    } catch (e) { console.error("Firestore Error:", e); }
   }, [currentUser]);
 
   const updateGoal = useCallback(async (id, data) => {
-    await updateDoc(doc(db, 'goals', id), { ...data, updatedAt: new Date().toISOString() });
+    const payload = stripUndefined({ ...data, updatedAt: new Date().toISOString() });
+    await updateDoc(doc(db, 'goals', id), payload);
   }, []);
 
   const deleteGoal = useCallback(async (id) => {
@@ -124,7 +140,10 @@ export function AppProvider({ children }) {
 
   const addCategory = useCallback(async (category) => {
     if (!currentUser) return;
-    await addDoc(collection(db, 'customCategories'), { ...category, uid: currentUser.uid });
+    try {
+      const payload = stripUndefined({ ...category, uid: currentUser.uid });
+      await addDoc(collection(db, 'customCategories'), payload);
+    } catch (e) { console.error("Firestore Error:", e); }
   }, [currentUser]);
 
   const deleteCategory = useCallback(async (id) => {

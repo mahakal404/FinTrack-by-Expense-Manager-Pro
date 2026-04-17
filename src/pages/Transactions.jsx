@@ -220,7 +220,7 @@ export default function Transactions() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-700 truncate">{exp.title}</p>
                     <p className="text-xs text-slate-400 truncate">
-                      {exp.date ? format(new Date(exp.date), 'dd MMM yyyy') : '—'}
+                      {exp.date ? format(new Date(exp.date), 'dd/MM/yyyy') : '—'}
                       {exp.note && ` · ${exp.note}`}
                     </p>
                   </div>

@@ -79,7 +79,7 @@ export default function Dashboard() {
     });
 
     return Object.entries(days).map(([date, amount]) => ({
-      date: format(new Date(date), 'd MMM'),
+      date: format(new Date(date), 'dd/MM/yyyy'),
       amount,
     }));
   }, [expenses]);
@@ -106,8 +106,8 @@ export default function Dashboard() {
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       });
       exportExpensesPDF(monthExpenses, categories, {
-        from: format(new Date(now.getFullYear(), now.getMonth(), 1), 'dd MMM yyyy'),
-        to: format(now, 'dd MMM yyyy'),
+        from: format(new Date(now.getFullYear(), now.getMonth(), 1), 'dd/MM/yyyy'),
+        to: format(now, 'dd/MM/yyyy'),
       }, settings.currency);
     }
   };
@@ -281,7 +281,7 @@ export default function Dashboard() {
                       <div>
                         <p className="text-sm font-medium text-slate-700">{cat?.name || exp.category}</p>
                         <p className="text-xs text-slate-400">
-                          {exp.date ? format(new Date(exp.date), 'dd MMM') : '—'} · {exp.note || exp.title}
+                          {exp.date ? format(new Date(exp.date), 'dd/MM/yyyy') : '—'} · {exp.note || exp.title}
                         </p>
                       </div>
                     </div>

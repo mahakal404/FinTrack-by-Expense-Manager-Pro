@@ -97,6 +97,12 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
     setSaving(false);
   };
 
+  const setDateShortcut = (daysToAdd) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysToAdd);
+    setForm(p => ({ ...p, date: d.toISOString().split('T')[0] }));
+  };
+
   const selectedCat = categories.find(c => c.id === form.category);
 
   return (
@@ -188,9 +194,17 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Date</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="label mb-0">Date</label>
+                <div className="flex gap-2 text-[10px]">
+                  <button type="button" onClick={() => setDateShortcut(-1)} className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none">Yesterday</button>
+                  <button type="button" onClick={() => setDateShortcut(0)} className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none">Today</button>
+                </div>
+              </div>
               <input
                 type="date"
+                min="2000-01-01"
+                max="2099-12-31"
                 className="input"
                 value={form.date}
                 onChange={e => setForm(p => ({ ...p, date: e.target.value }))}

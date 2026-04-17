@@ -70,14 +70,14 @@ export function exportExpensesPDF(expenses, categories, dateRange = null, curren
   if (dateRange) {
     doc.text(`Period: ${dateRange.from} — ${dateRange.to}`, 14, 49);
   } else {
-    doc.text(`Generated: ${format(new Date(), 'dd MMM yyyy, hh:mm a')}`, 14, 49);
+    doc.text(`Generated: ${format(new Date(), 'dd/MM/yyyy, hh:mm a')}`, 14, 49);
   }
 
   // ─── Table Data ───
   const tableData = expenses.map(exp => {
     const cat = categories.find(c => c.id === exp.category);
     return [
-      exp.date ? format(new Date(exp.date), 'dd MMM yyyy') : '—',
+      exp.date ? format(new Date(exp.date), 'dd/MM/yyyy') : '—',
       exp.title || '—',
       cat ? cat.name : exp.category || '—',
       formatAmount(exp.amount, currencySymbol),
