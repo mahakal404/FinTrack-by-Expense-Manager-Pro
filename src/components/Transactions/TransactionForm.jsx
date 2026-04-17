@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useFirestore } from '../../hooks/useFirestore';
 import Modal from '../UI/Modal';
-import { Paperclip, Upload, ChevronDown, Plus } from 'lucide-react';
+import { Paperclip, Upload, ChevronDown, Plus, Briefcase } from 'lucide-react';
 import { RenderIcon } from '../../utils/icons';
 import CategoryManager from '../Categories/CategoryManager';
 import DatePicker from 'react-datepicker';
