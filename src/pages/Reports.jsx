@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell,
   BarChart, Bar
 } from 'recharts';
-import { TrendingUp, FileText } from 'lucide-react';
+import { TrendingUp, FileText, Download } from 'lucide-react';
 import Card from '../components/UI/Card';
 import { exportExpensesPDF } from '../utils/pdfExport';
 
