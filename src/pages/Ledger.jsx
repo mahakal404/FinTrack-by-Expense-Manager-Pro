@@ -22,6 +22,8 @@ export default function Ledger() {
   
   // Tab state: 'active' | 'closed'
   const [viewTab, setViewTab] = useState('active');
+  const [exporting, setExporting] = useState(false);
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
 
   // Nested Expense Edit state
   const [editExpense, setEditExpense] = useState(null);
@@ -99,9 +101,17 @@ export default function Ledger() {
   const totalSpent = selectedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
   const closingBalance = selectedProject ? ((selectedProject.openingBalance || 0) - totalSpent) : 0;
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!selectedProject) return;
-    exportLedgerPDF(selectedProject, selectedExpenses, categories, settings);
+    setExporting(true);
+    await new Promise(r => setTimeout(r, 50));
+    try {
+      exportLedgerPDF(selectedProject, selectedExpenses, categories, settings);
+    } catch (err) {
+      toast.error("Failed generating document");
+      console.error(err);
+    }
+    setExporting(false);
   };
 
   const handleArchive = async () => {
@@ -129,9 +139,9 @@ export default function Ledger() {
     <div className="space-y-6 animate-fade-in pb-20 lg:pb-0">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-5">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-4">
              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
                  <Briefcase size={20} className="text-amber-500" />
              </div>
@@ -140,10 +150,15 @@ export default function Ledger() {
                 <p className="text-sm text-slate-500 mt-0.5">Track isolated custom contracts strictly</p>
              </div>
           </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={() => { setEditId(null); setForm({ name:'', payerName:'', openingBalance:''}); setShowForm(true); }} className="btn bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 px-5 py-2.5 text-sm font-semibold rounded-lg flex items-center gap-2 transition-transform active:scale-95">
+              <Plus size={18} /> Create Your Ledger
+            </button>
+            <button onClick={() => setShowExpenseForm(true)} className="btn bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-500/30 shadow-sm px-5 py-2.5 text-sm font-semibold rounded-lg flex items-center gap-2 transition-transform active:scale-95">
+              <Plus size={18} /> Add Transaction
+            </button>
+          </div>
         </div>
-        <button onClick={() => { setEditId(null); setForm({ name:'', payerName:'', openingBalance:''}); setShowForm(true); }} className="btn bg-amber-500 hover:bg-amber-600 text-white border-transparent shadow shadow-amber-500/20 px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors">
-          <Plus size={16} /> Open Ledger
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -226,8 +241,8 @@ export default function Ledger() {
                                 </p>
                              </div>
                              <div className="flex items-center gap-2">
-                                <button onClick={handleExport} className="btn bg-amber-500 hover:bg-amber-600 text-slate-900 border-transparent text-sm font-bold shadow-lg shadow-amber-500/20 px-4 py-2">
-                                   <FileDown size={18} className="text-slate-900" /> Download Report
+                                <button onClick={handleExport} disabled={exporting} className="btn bg-amber-500 hover:bg-amber-600 text-slate-900 border-transparent text-sm font-bold shadow-lg shadow-amber-500/20 px-4 py-2 flex items-center gap-2 disabled:opacity-50">
+                                   <FileDown size={18} className="text-slate-900" /> {exporting ? 'Generating...' : 'Download Report'}
                                 </button>
                                 {selectedProject.status === 'active' ? (
                                     <button onClick={handleArchive} className="p-2 sm:px-3 sm:py-2 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 transition-colors" title="Mark as Closed">
@@ -358,11 +373,11 @@ export default function Ledger() {
         message="This permanently reverses this expenditure from your selected ledger. Proceed?"
       />
 
-      {!!editExpense && (
+      {(!!editExpense || showExpenseForm) && (
          <TransactionForm 
-            isOpen={!!editExpense}
+            isOpen={true}
             editData={editExpense}
-            onClose={() => setEditExpense(null)}
+            onClose={() => { setEditExpense(null); setShowExpenseForm(false); }}
          />
       )}
 

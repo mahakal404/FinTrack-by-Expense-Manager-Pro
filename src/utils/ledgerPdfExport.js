@@ -90,7 +90,6 @@ export const exportLedgerPDF = (project, expenses, categories, settings = {}) =>
     head: [['DATE', 'CATEGORY / PROVIDER', 'ITEM DESCRIPTION', 'AMOUNT']],
     body: tableData,
     theme: 'grid',
-    styles: { font: 'NotoSans' },
     headStyles: {
       fillColor: [15, 23, 42],
       textColor: [245, 158, 11], // amber text on midnight blue head
@@ -98,6 +97,7 @@ export const exportLedgerPDF = (project, expenses, categories, settings = {}) =>
       fontSize: 9
     },
     styles: {
+      font: 'NotoSans',
       fontSize: 9,
       cellPadding: 4,
       textColor: [71, 85, 105], // slate-600
