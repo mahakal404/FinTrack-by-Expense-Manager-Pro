@@ -54,7 +54,6 @@ export const exportLedgerPDF = (project, expenses, categories, settings = {}) =>
   if (project.payerName) {
     doc.text(`Client/Payer: ${project.payerName}`, margin + 5, startY + 16);
   }
-  doc.text(`Ledger Status: ${project.status.toUpperCase()}`, margin + 5, startY + 22);
 
   // Stats
   doc.setFont('NotoSans', 'bold');
