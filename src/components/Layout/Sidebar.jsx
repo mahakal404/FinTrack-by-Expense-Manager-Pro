@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Receipt, BarChart3, Target } from 'lucide-react';
+import { LayoutDashboard, Receipt, BarChart3, Target, LogOut } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Overview' },
@@ -9,6 +10,19 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const { currentUser, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Failed to log out", error);
+    }
+  };
+
+  const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User';
+  const displayInitial = displayName.charAt(0).toUpperCase();
+
   return (
     <aside className="hidden lg:flex flex-col w-60 bg-white border-r border-slate-100 h-screen sticky top-0">
       {/* Logo */}
@@ -48,15 +62,28 @@ export default function Sidebar() {
       </nav>
 
       {/* User */}
-      <div className="p-4 border-t border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold">
-            U
+      <div className="p-4 border-t border-slate-100 mt-auto">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 overflow-hidden">
+            {currentUser?.photoURL ? (
+              <img src={currentUser?.photoURL} alt={displayName} className="w-9 h-9 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-9 h-9 rounded-full shrink-0 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold">
+                {displayInitial}
+              </div>
+            )}
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium text-slate-700 truncate">{displayName}</p>
+              <p className="text-xs text-slate-400 truncate">{currentUser?.email}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-700">Demo User</p>
-            <p className="text-xs text-slate-400">Pro Plan</p>
-          </div>
+          <button 
+            onClick={handleLogout}
+            title="Log out"
+            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </aside>
