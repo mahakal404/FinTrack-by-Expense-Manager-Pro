@@ -22,9 +22,11 @@ export function AppProvider({ children }) {
   const { currentUser } = useAuth();
   
   const [expenses, setExpenses] = useState([]);
+  const [projectExpenses, setProjectExpenses] = useState([]); // <--- NEW split stream
   const [salary, setSalary] = useState([]);
   const [customCategories, setCustomCategories] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [projects, setProjects] = useState([]); // <--- NEW collection state
   const [settings, setSettings] = useState({ monthlyBudget: 12000, currency: '₹' });
   const [loadingData, setLoadingData] = useState(true);
 
@@ -45,10 +47,18 @@ export function AppProvider({ children }) {
     const uid = currentUser.uid;
     const unsubscribes = [];
 
-    // Expenses (users/{uid}/expenses)
+    // Expenses (users/{uid}/expenses) -> Splitting into Personal and Project
     const qExpenses = query(collection(db, 'users', uid, 'expenses'));
     unsubscribes.push(onSnapshot(qExpenses, (snapshot) => {
-      setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const allDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setExpenses(allDocs.filter(d => !d.isProject));
+      setProjectExpenses(allDocs.filter(d => d.isProject));
+    }));
+
+    // Projects (users/{uid}/projects)
+    const qProjects = query(collection(db, 'users', uid, 'projects'));
+    unsubscribes.push(onSnapshot(qProjects, (snapshot) => {
+      setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }));
 
     // Salary (users/{uid}/salary)
@@ -147,6 +157,30 @@ export function AppProvider({ children }) {
     await deleteDoc(doc(db, 'users', currentUser.uid, 'goals', id));
   }, [currentUser]);
 
+  // Project Ledger Actions
+  const addProject = useCallback(async (project) => {
+    if (!currentUser) return;
+    try {
+      const payload = stripUndefined({ ...project, createdAt: new Date().toISOString() });
+      await addDoc(collection(db, 'users', currentUser.uid, 'projects'), payload);
+    } catch (e) {
+      console.error("Firestore Error:", e);
+    }
+  }, [currentUser]);
+
+  const updateProject = useCallback(async (id, data) => {
+    if (!currentUser) return;
+    const payload = stripUndefined({ ...data, updatedAt: new Date().toISOString() });
+    await updateDoc(doc(db, 'users', currentUser.uid, 'projects', id), payload);
+  }, [currentUser]);
+
+  const deleteProject = useCallback(async (id) => {
+    if (!currentUser) return;
+    // Note: deleting a project does not auto-delete nested projectExpenses. 
+    // They will float or we handle cascading deletes globally if needed.
+    await deleteDoc(doc(db, 'users', currentUser.uid, 'projects', id));
+  }, [currentUser]);
+
   const addCategory = useCallback(async (category) => {
     if (!currentUser) return;
     try {
@@ -169,10 +203,11 @@ export function AppProvider({ children }) {
   }, [currentUser, settings]);
 
   const value = {
-    expenses, salary, customCategories, categories, goals, settings, loading: loadingData,
+    expenses, projectExpenses, salary, customCategories, categories, goals, projects, settings, loading: loadingData,
     addExpense, updateExpense, deleteExpense,
     addSalary, updateSalary, deleteSalary,
     addGoal, updateGoal, deleteGoal,
+    addProject, updateProject, deleteProject,
     addCategory, deleteCategory, updateSettings,
   };
 

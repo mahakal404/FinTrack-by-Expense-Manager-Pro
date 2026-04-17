@@ -8,9 +8,8 @@ import CategoryManager from '../Categories/CategoryManager';
 import toast from 'react-hot-toast';
 
 export default function TransactionForm({ isOpen, onClose, editData = null }) {
-  const { categories } = useApp();
+  const { categories, projects, addExpense, updateExpense } = useApp();
   const { uploadFile } = useFirestore('expenses');
-  const { addExpense, updateExpense } = useApp();
   
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -24,6 +23,8 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
     date: new Date().toISOString().split('T')[0],
     category: 'food',
     provider: '',
+    isProject: false,
+    projectId: '',
     note: '',
     receiptUrl: '',
   });
@@ -36,6 +37,8 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
         date: editData.date || new Date().toISOString().split('T')[0],
         category: editData.category || 'food',
         provider: editData.provider || '',
+        isProject: editData.isProject || false,
+        projectId: editData.projectId || '',
         note: editData.note || '',
         receiptUrl: editData.receiptUrl || '',
       });
@@ -46,6 +49,8 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
         date: new Date().toISOString().split('T')[0],
         category: categories.length > 0 ? categories[0].id : 'food',
         provider: '',
+        isProject: false,
+        projectId: '',
         note: '',
         receiptUrl: '',
       });
@@ -86,6 +91,8 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
         ...form,
         amount: parseFloat(form.amount),
         provider: ['mobile_recharge', 'ai_tools', 'subscriptions'].includes(form.category) ? form.provider : '',
+        isProject: form.isProject,
+        projectId: form.isProject ? form.projectId : '',
         // If they pick a category that got deleted, default to first available
         category: categories.find(c => c.id === form.category) ? form.category : categories[0].id,
       };
@@ -227,6 +234,34 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
                 </select>
               </div>
             )}
+          </div>
+
+          {/* Project Assigner Toggle */}
+          <div className="col-span-2 bg-amber-50/50 rounded-xl p-3 border border-amber-500/20">
+             <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-sm font-semibold text-amber-700">Assign to Project?</span>
+                <input 
+                  type="checkbox" 
+                  checked={form.isProject} 
+                  onChange={e => setForm(p => ({ ...p, isProject: e.target.checked, projectId: '' }))} 
+                  className="rounded text-amber-500 border-amber-300 focus:ring-amber-500 w-4 h-4 cursor-pointer" 
+                />
+             </label>
+             {form.isProject && (
+                <div className="mt-3">
+                   <select 
+                      className="input border-amber-300 focus:border-amber-500 text-sm bg-white" 
+                      value={form.projectId} 
+                      onChange={e => setForm(p => ({...p, projectId: e.target.value}))} 
+                      required
+                   >
+                      <option value="">Select an active project...</option>
+                      {projects.filter(p => p.status === 'active').map(p => (
+                         <option key={p.id} value={p.id}>{p.name} ({p.payerName})</option>
+                      ))}
+                   </select>
+                </div>
+             )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
