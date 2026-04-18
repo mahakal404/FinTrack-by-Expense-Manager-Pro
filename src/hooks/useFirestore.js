@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
-import { ref, uploadBytes, getDownloadURL, uploadString } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
 
-// Helper: Compress Image using Canvas API
+// Helper: Compress Image using Canvas API and return as Blob
 const compressImage = (file, maxWidth = 1200, quality = 0.8) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -25,9 +25,14 @@ const compressImage = (file, maxWidth = 1200, quality = 0.8) => {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Output compressed base64
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(dataUrl);
+        // Output compressed Blob directly
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Canvas toBlob failed"));
+          }
+        }, 'image/jpeg', quality);
       };
       img.onerror = (err) => reject(err);
     };
@@ -50,45 +55,43 @@ export function useFirestore(collectionName) {
       const safeTime = Date.now();
       const fileName = `${safeTime}_${safeRandom}.${isPdf ? 'pdf' : 'jpg'}`;
       
+      // Building the ref using only the storage instance and the sanitized path
       const storageRef = ref(storage, `${path}/${fileName}`);
 
       let downloadUrl = '';
 
       if (isPdf) {
-        // Upload PDF directly as bytes
-        console.log(`[Firebase] Starting raw PDF upload to path: ${path}/${fileName}`);
+        // Upload PDF directly as bytes using the official SDK method
+        console.log(`[Firebase SDK] Starting uploadBytes for PDF: ${path}/${fileName}`);
         const snapshot = await uploadBytes(storageRef, file);
         downloadUrl = await getDownloadURL(snapshot.ref);
       } else {
-        // Compress Image Data URL and upload as string
+        // Handle Images with compression fallback
         try {
-          console.log(`[Firebase] Starting Canvas compression for image...`);
-          const compressedBase64 = await compressImage(file, 1200, 0.8);
-          console.log(`[Firebase] Compression successful. Uploading as data_url...`);
-          const snapshot = await uploadString(storageRef, compressedBase64, 'data_url');
+          console.log(`[Firebase SDK] Starting Canvas compression...`);
+          const compressedBlob = await compressImage(file, 1200, 0.8);
+          console.log(`[Firebase SDK] Compression successful. Starting uploadBytes...`);
+          const snapshot = await uploadBytes(storageRef, compressedBlob);
           downloadUrl = await getDownloadURL(snapshot.ref);
         } catch (compressionErr) {
-          console.error(`[Firebase] Canvas compression failed, falling back to RAW upload:`, compressionErr);
-          console.log(`[Firebase] Starting RAW image upload to path: ${path}/${fileName}`);
+          console.error(`[Firebase SDK] Compression failed, falling back to original uploadBytes:`, compressionErr);
           const snapshot = await uploadBytes(storageRef, file);
           downloadUrl = await getDownloadURL(snapshot.ref);
         }
       }
 
-      console.log(`[Firebase] Upload successful! URL:`, downloadUrl);
+      console.log(`[Firebase SDK] Upload successful! URL retrieved.`);
       setLoading(false);
       return downloadUrl;
     } catch (err) {
-      console.error('[Firebase Storage Upload Error]:', err?.code || 'Unknown Code', err?.message || err);
-      // Construct a better message if it's a Firebase Error
-      const finalMsg = err?.code ? `Firebase: ${err.message}` : err?.message || 'Unknown network error';
+      console.error('[Firebase SDK Critical Error]:', err?.code || 'Unknown Code', err?.message || err);
+      const finalMsg = err?.code ? `Firebase (${err.code}): ${err.message}` : err?.message || 'Unknown network error';
       setError(finalMsg);
       setLoading(false);
       throw new Error(finalMsg);
     }
   }, []);
 
-  // Return stubbed tracking for backwards compatibility
   return { 
     add: async () => {}, 
     update: async () => {}, 
