@@ -240,21 +240,38 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
           </div>
 
           {/* Project Assigner Toggle */}
-          <div className="col-span-2 bg-amber-50/50 rounded-xl p-3 border border-amber-500/20">
-              <div className="flex items-center justify-between mb-2">
-                 <label className="label mb-0 flex items-center gap-1.5"><Briefcase size={14} className="text-amber-500" /> Assign to Smart Ledger?</label>
-                 <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                    <input type="checkbox" className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer" checked={form.isProject} onChange={e => setForm(p => ({ ...p, isProject: e.target.checked }))} />
-                    <label className="toggle-label block overflow-hidden h-5 rounded-full bg-slate-300 cursor-pointer"></label>
+          <div className={`col-span-2 rounded-xl p-4 border transition-all duration-300 ${form.isProject ? 'bg-amber-50/80 border-amber-300 shadow-sm' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}>
+              <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                   <div className={`p-2 rounded-lg transition-colors duration-300 ${form.isProject ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-slate-500'}`}>
+                     <Briefcase size={18} />
+                   </div>
+                   <div>
+                     <label htmlFor="smart-ledger-toggle" className="text-sm font-semibold text-slate-800 cursor-pointer select-none">Assign to Smart Ledger?</label>
+                     <p className={`text-xs mt-0.5 transition-colors duration-300 ${form.isProject ? 'text-amber-700' : 'text-slate-500'}`}>
+                       {form.isProject ? 'Currently assigned to a ledger' : 'Adding to main dashboard'}
+                     </p>
+                   </div>
                  </div>
+                 <label htmlFor="smart-ledger-toggle" className="relative inline-flex items-center cursor-pointer group">
+                    <input 
+                      id="smart-ledger-toggle" 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={form.isProject} 
+                      onChange={e => setForm(p => ({ ...p, isProject: e.target.checked, projectId: e.target.checked ? p.projectId : '' }))} 
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 group-hover:shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-shadow"></div>
+                 </label>
               </div>
               
               {form.isProject && (
-                 <div className="animate-slide-down mt-3 space-y-2">
-                    <select className="input focus:ring-amber-500 focus:border-amber-500 bg-amber-50/30" value={form.projectId} onChange={e => setForm(p => ({ ...p, projectId: e.target.value }))} required={form.isProject}>
+                 <div className="animate-slide-down mt-4 pt-4 border-t border-amber-200/50">
+                    <label className="block text-xs font-medium text-amber-800 mb-1.5 ml-1">Select Destination Ledger</label>
+                    <select className="input focus:ring-amber-500 focus:border-amber-500 bg-white" value={form.projectId} onChange={e => setForm(p => ({ ...p, projectId: e.target.value }))} required={form.isProject}>
                        <option value="">Select an Active Ledger...</option>
                       {projects.filter(p => p.status === 'active').map(p => (
-                         <option key={p.id} value={p.id}>{p.name} ({p.payerName})</option>
+                         <option key={p.id} value={p.id}>{p.name} {p.payerName ? `(${p.payerName})` : ''}</option>
                       ))}
                    </select>
                 </div>
