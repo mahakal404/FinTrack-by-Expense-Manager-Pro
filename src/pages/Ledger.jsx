@@ -107,7 +107,7 @@ export default function Ledger() {
     setExporting(true);
     await new Promise(r => setTimeout(r, 50));
     try {
-      exportLedgerPDF(selectedProject, selectedExpenses, categories, settings);
+      await exportLedgerPDF(selectedProject, selectedExpenses, categories, settings);
     } catch (err) {
       toast.error(`Export Error: ${err.message}`);
       console.error(err);

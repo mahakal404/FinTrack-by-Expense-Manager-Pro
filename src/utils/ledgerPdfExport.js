@@ -11,8 +11,27 @@ function registerNotoSansFont(doc) {
   doc.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
 }
 
-export const exportLedgerPDF = (project, expenses, categories, settings = {}) => {
+export const exportLedgerPDF = async (project, expenses, categories, settings = {}) => {
   try {
+    // Attempt to preload Images into base64 to avoid CORS issues if possible, and prepare jsPDF
+    const imageMap = {};
+    for (const e of expenses) {
+      if (e.receiptUrl && !e.receiptUrl.includes('.pdf')) {
+        try {
+          const res = await fetch(e.receiptUrl);
+          const blob = await res.blob();
+          const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          imageMap[e.id] = base64;
+        } catch (err) {
+          console.warn('Could not preload image for PDF', err);
+        }
+      }
+    }
+
     const doc = new jsPDF();
     registerNotoSansFont(doc);
   const currencySymbol = settings.currency || '₹';
@@ -78,17 +97,25 @@ export const exportLedgerPDF = (project, expenses, categories, settings = {}) =>
     const d = e.date ? new Date(e.date) : null;
     const safeDate = (d && !isNaN(d.getTime())) ? format(d, displayFormat) : '-';
 
+    const hasReceipt = !!e.receiptUrl;
+    const isPdf = hasReceipt && e.receiptUrl.includes('.pdf');
+    let receiptText = '-';
+    if (hasReceipt) {
+       receiptText = isPdf ? 'PDF Link' : (imageMap[e.id] ? '' : 'Image Link'); 
+    }
+
     return [
       safeDate,
       catString,
       e.title || '-',
-      `${currencySymbol}${(e.amount || 0).toLocaleString('en-IN')}`
+      `${currencySymbol}${(e.amount || 0).toLocaleString('en-IN')}`,
+      receiptText
     ];
   });
 
     autoTable(doc, {
       startY,
-      head: [['DATE', 'CATEGORY / PROVIDER', 'ITEM DESCRIPTION', 'AMOUNT']],
+      head: [['DATE', 'CATEGORY / PROVIDER', 'ITEM DESCRIPTION', 'AMOUNT', 'RECEIPT']],
       body: tableData,
       theme: 'grid',
       headStyles: {
@@ -102,12 +129,39 @@ export const exportLedgerPDF = (project, expenses, categories, settings = {}) =>
         fontSize: 9,
         cellPadding: 4,
         textColor: [71, 85, 105], // slate-600
+        valign: 'middle'
       },
       columnStyles: {
-        3: { halign: 'right', fontStyle: 'bold' } // align amount to right
+        3: { halign: 'right', fontStyle: 'bold' }, // align amount to right
+        4: { halign: 'center' }
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252] // slate-50
+      },
+      didParseCell: function(data) {
+        if (data.column.index === 4 && data.cell.section === 'body') {
+           const rowExpense = expenses[data.row.index];
+           if (rowExpense.receiptUrl && !rowExpense.receiptUrl.includes('.pdf') && imageMap[rowExpense.id]) {
+             // We need to increase row height to fit the image
+             data.row.minHeight = 16;
+           }
+        }
+      },
+      didDrawCell: function(data) {
+        if (data.column.index === 4 && data.cell.section === 'body') {
+           const rowExpense = expenses[data.row.index];
+           if (rowExpense.receiptUrl) {
+              const isPdf = rowExpense.receiptUrl.includes('.pdf');
+              if (isPdf || !imageMap[rowExpense.id]) {
+                doc.setTextColor(59, 130, 246); // blue
+                // Using data.row.height to center it properly
+                doc.textWithLink(isPdf ? 'View PDF' : 'View Image', data.cell.x + 2, data.cell.y + (data.row.height / 2) + 2, { url: rowExpense.receiptUrl });
+              } else if (imageMap[rowExpense.id]) {
+                // inject image
+                doc.addImage(imageMap[rowExpense.id], 'JPEG', data.cell.x + 3, data.cell.y + 2, 12, 12);
+              }
+           }
+        }
       }
     });
 

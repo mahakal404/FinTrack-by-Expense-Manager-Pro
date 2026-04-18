@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useFirestore } from '../../hooks/useFirestore';
 import Modal from '../UI/Modal';
-import { Paperclip, Upload, ChevronDown, Plus, Briefcase } from 'lucide-react';
+import { Paperclip, Upload, ChevronDown, Plus, Briefcase, Eye } from 'lucide-react';
 import { RenderIcon } from '../../utils/icons';
 import CategoryManager from '../Categories/CategoryManager';
+import ReceiptViewer from './ReceiptViewer';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from 'date-fns';
@@ -18,6 +19,7 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
   const [saving, setSaving] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
   const dropdownRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -317,17 +319,22 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
                 {uploading ? 'Processing...' : 'Upload'}
                 <input
                   type="file"
-                  accept="image/*,.pdf"
+                  accept=".jpg,.jpeg,.png,.pdf"
                   className="hidden"
                   onChange={handleFileUpload}
                   disabled={uploading}
                 />
               </label>
               {form.receiptUrl && (
-                <span className="flex items-center gap-1.5 text-xs text-success-600 bg-success-50 px-2.5 py-1 rounded-full border border-success-100">
-                  <Paperclip size={12} />
-                  Attached successfully
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5 text-xs text-success-600 bg-success-50 px-2.5 py-1 rounded-full border border-success-100">
+                    <Paperclip size={12} />
+                    Attached successfully
+                  </span>
+                  <button type="button" onClick={() => setShowReceipt(true)} className="btn btn-outline btn-sm rounded-full px-2 py-1 h-auto text-xs text-primary-600 border-primary-200 hover:bg-primary-50">
+                    <Eye size={12} className="mr-1" /> View
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -350,6 +357,13 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
           onClose={() => setShowCategoryManager(false)}
         />
       )}
+
+      {/* Receipt Viewer Component */}
+      <ReceiptViewer 
+        isOpen={showReceipt} 
+        onClose={() => setShowReceipt(false)} 
+        url={form.receiptUrl} 
+      />
     </>
   );
 }
