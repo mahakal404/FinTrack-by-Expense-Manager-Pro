@@ -4,11 +4,16 @@ import { ExternalLink, Maximize2 } from 'lucide-react';
 export default function ReceiptViewer({ url, isOpen, onClose }) {
   if (!url) return null;
 
-  // Since Firebase Storage URLs can be tricky to parse just by extension when there are tokens,
-  // we could rely on `.pdf` being in the URI path or we just check.
-  // In our useFirestore.js we generate `${Date.now()}_...\.pdf` or `.jpg`.
-  // So `.pdf` will be explicitly in the path before the query parameters.
-  const isPdf = url.includes('.pdf');
+  const isPdf = (() => {
+    try {
+      // Safely parse out query params like ?alt=media
+      const urlObj = new URL(url);
+      return urlObj.pathname.toLowerCase().endsWith('.pdf');
+    } catch {
+      // Fallback if it's a relative/local URL string for some reason
+      return url.toLowerCase().includes('.pdf') && !url.toLowerCase().includes('.jpg') && !url.toLowerCase().includes('.png');
+    }
+  })();
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Receipt Viewer" size={isPdf ? 'xl' : 'lg'}>

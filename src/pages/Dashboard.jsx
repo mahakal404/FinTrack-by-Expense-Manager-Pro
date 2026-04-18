@@ -15,6 +15,7 @@ import Card from '../components/UI/Card';
 import ProgressBar from '../components/UI/ProgressBar';
 import EmptyState from '../components/UI/EmptyState';
 import TransactionForm from '../components/Transactions/TransactionForm';
+import ReceiptViewer from '../components/Transactions/ReceiptViewer';
 import SalaryModal from '../components/Salary/SalaryModal';
 import CategoryManager from '../components/Categories/CategoryManager';
 import ConfirmDialog from '../components/UI/ConfirmDialog';
@@ -30,6 +31,7 @@ export default function Dashboard() {
   const [showSalary, setShowSalary] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [viewReceiptUrl, setViewReceiptUrl] = useState(null);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   // Calculations
@@ -292,7 +294,13 @@ export default function Dashboard() {
                         ₹{exp.amount?.toLocaleString()}
                       </span>
                       {exp.receiptUrl && (
-                        <Paperclip size={12} className="text-slate-400" />
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setViewReceiptUrl(exp.receiptUrl); }} 
+                          className="flex items-center gap-1 text-[10px] bg-slate-100 hover:bg-amber-100 hover:text-amber-700 text-slate-500 px-2 py-1 rounded-full font-semibold transition-colors"
+                          title="View Receipt"
+                        >
+                          <Paperclip size={10} /> View
+                        </button>
                       )}
                       <button
                         onClick={() => setConfirmDelete(exp.id)}
@@ -368,6 +376,11 @@ export default function Dashboard() {
         isOpen={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
         onConfirm={() => deleteExpense(confirmDelete)}
+      />
+      <ReceiptViewer 
+         isOpen={!!viewReceiptUrl}
+         onClose={() => setViewReceiptUrl(null)}
+         url={viewReceiptUrl}
       />
     </div>
   );

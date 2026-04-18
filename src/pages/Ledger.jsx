@@ -9,6 +9,7 @@ import Modal from '../components/UI/Modal';
 import toast from 'react-hot-toast';
 import { exportLedgerPDF } from '../utils/ledgerPdfExport';
 import TransactionForm from '../components/Transactions/TransactionForm';
+import ReceiptViewer from '../components/Transactions/ReceiptViewer';
 
 export default function Ledger() {
   const { projects, projectExpenses, categories, addProject, updateProject, deleteProject, settings, deleteExpense } = useApp();
@@ -29,6 +30,7 @@ export default function Ledger() {
   // Nested Expense Edit state
   const [editExpense, setEditExpense] = useState(null);
   const [confirmDeleteExpense, setConfirmDeleteExpense] = useState(null);
+  const [viewReceiptUrl, setViewReceiptUrl] = useState(null);
 
   const activeProjectCount = projects.filter(p => p.status === 'active').length;
   const closedProjectCount = projects.filter(p => p.status === 'closed').length;
@@ -322,7 +324,7 @@ export default function Ledger() {
                                        
                                        <div className="text-right w-20 flex-shrink-0">
                                           <p className="text-sm font-bold text-slate-800">{settings?.currency || '₹'}{exp.amount?.toLocaleString('en-IN')}</p>
-                                          {exp.receiptUrl && <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full mt-1 inline-block border border-slate-200 shadow-sm">Receipt</span>}
+                                          {exp.receiptUrl && <span onClick={(e) => { e.stopPropagation(); setViewReceiptUrl(exp.receiptUrl); }} className="text-[10px] font-medium text-slate-400 bg-slate-100 hover:bg-amber-100 hover:text-amber-700 hover:border-amber-200 cursor-pointer px-2 py-0.5 rounded-full mt-1 inline-block border border-slate-200 shadow-sm transition-colors">View Receipt</span>}
                                        </div>
                                     </div>
                                  </div>
@@ -412,6 +414,12 @@ export default function Ledger() {
             onClose={() => { setEditExpense(null); setShowExpenseForm(false); }}
          />
       )}
+
+      <ReceiptViewer 
+         isOpen={!!viewReceiptUrl}
+         onClose={() => setViewReceiptUrl(null)}
+         url={viewReceiptUrl}
+      />
 
     </div>
   );

@@ -78,12 +78,20 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadFile(file);
+      // Add generous 15-second timeout in case Storage hangs
+      const url = await Promise.race([
+        uploadFile(file),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+      ]);
       setForm(prev => ({ ...prev, receiptUrl: url }));
+      toast.success("Receipt attached!");
     } catch (err) {
       console.error('Upload failed:', err);
+      toast.error('Upload failed or timed out. Please try again.');
+    } finally {
+      setUploading(false);
+      if (e.target) e.target.value = ''; // Reset
     }
-    setUploading(false);
   };
 
   const handleSubmit = async (e) => {
@@ -314,9 +322,9 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
           <div>
             <label className="label">Receipt (optional)</label>
             <div className="flex items-center gap-3">
-              <label className="btn btn-outline btn-sm cursor-pointer border-slate-200">
-                <Upload size={14} />
-                {uploading ? 'Processing...' : 'Upload'}
+              <label className="btn btn-outline btn-sm cursor-pointer border-slate-200 relative overflow-hidden group">
+                <Upload size={14} className={uploading ? "animate-bounce" : ""} />
+                {uploading ? 'Processing...' : 'Upload File'}
                 <input
                   type="file"
                   accept=".jpg,.jpeg,.png,.pdf"
@@ -325,15 +333,21 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
                   disabled={uploading}
                 />
               </label>
+              
               {form.receiptUrl && (
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1.5 text-xs text-success-600 bg-success-50 px-2.5 py-1 rounded-full border border-success-100">
-                    <Paperclip size={12} />
-                    Attached successfully
-                  </span>
-                  <button type="button" onClick={() => setShowReceipt(true)} className="btn btn-outline btn-sm rounded-full px-2 py-1 h-auto text-xs text-primary-600 border-primary-200 hover:bg-primary-50">
-                    <Eye size={12} className="mr-1" /> View
-                  </button>
+                <div className="flex-1">
+                  <div 
+                    onClick={() => setShowReceipt(true)}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-all duration-200 border bg-success-50 hover:bg-success-100 border-success-200 shadow-sm group"
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-success-700">
+                      <Paperclip size={14} />
+                      Attached Successfully
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-success-600 bg-white/60 px-2 py-0.5 rounded-full uppercase tracking-wider group-hover:bg-white transition-colors">
+                      <Eye size={12} /> View
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
