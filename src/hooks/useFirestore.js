@@ -43,31 +43,48 @@ export function useFirestore(collectionName) {
     setLoading(true);
     setError(null);
     try {
-      const fileExt = file.name.split('.').pop().toLowerCase();
+      const fileExt = (file.name || '').split('.').pop().toLowerCase();
       const isPdf = fileExt === 'pdf';
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${isPdf ? 'pdf' : 'jpg'}`;
+      // Completely sanitize filename to prevent invalid paths
+      const safeRandom = Math.random().toString(36).substring(2, 9);
+      const safeTime = Date.now();
+      const fileName = `${safeTime}_${safeRandom}.${isPdf ? 'pdf' : 'jpg'}`;
+      
       const storageRef = ref(storage, `${path}/${fileName}`);
 
       let downloadUrl = '';
 
       if (isPdf) {
         // Upload PDF directly as bytes
+        console.log(`[Firebase] Starting raw PDF upload to path: ${path}/${fileName}`);
         const snapshot = await uploadBytes(storageRef, file);
         downloadUrl = await getDownloadURL(snapshot.ref);
       } else {
         // Compress Image Data URL and upload as string
-        const compressedBase64 = await compressImage(file, 1200, 0.8);
-        const snapshot = await uploadString(storageRef, compressedBase64, 'data_url');
-        downloadUrl = await getDownloadURL(snapshot.ref);
+        try {
+          console.log(`[Firebase] Starting Canvas compression for image...`);
+          const compressedBase64 = await compressImage(file, 1200, 0.8);
+          console.log(`[Firebase] Compression successful. Uploading as data_url...`);
+          const snapshot = await uploadString(storageRef, compressedBase64, 'data_url');
+          downloadUrl = await getDownloadURL(snapshot.ref);
+        } catch (compressionErr) {
+          console.error(`[Firebase] Canvas compression failed, falling back to RAW upload:`, compressionErr);
+          console.log(`[Firebase] Starting RAW image upload to path: ${path}/${fileName}`);
+          const snapshot = await uploadBytes(storageRef, file);
+          downloadUrl = await getDownloadURL(snapshot.ref);
+        }
       }
 
+      console.log(`[Firebase] Upload successful! URL:`, downloadUrl);
       setLoading(false);
       return downloadUrl;
     } catch (err) {
-      console.error('File Upload Error:', err);
-      setError(err.message);
+      console.error('[Firebase Storage Upload Error]:', err?.code || 'Unknown Code', err?.message || err);
+      // Construct a better message if it's a Firebase Error
+      const finalMsg = err?.code ? `Firebase: ${err.message}` : err?.message || 'Unknown network error';
+      setError(finalMsg);
       setLoading(false);
-      throw err;
+      throw new Error(finalMsg);
     }
   }, []);
 

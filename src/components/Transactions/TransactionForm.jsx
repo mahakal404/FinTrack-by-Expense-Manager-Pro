@@ -78,16 +78,16 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
     if (!file) return;
     setUploading(true);
     try {
-      // Add generous 15-second timeout in case Storage hangs
+      // Add generous 45-second timeout in case Storage hangs, specifically for larger RAW images
       const url = await Promise.race([
         uploadFile(file),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Network Timeout: Request took more than 45 seconds.")), 45000))
       ]);
       setForm(prev => ({ ...prev, receiptUrl: url }));
       toast.success("Receipt attached!");
     } catch (err) {
-      console.error('Upload failed:', err);
-      toast.error('Upload failed or timed out. Please try again.');
+      console.error('[TransactionForm] Upload Hook Failed:', err);
+      toast.error(err.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
       if (e.target) e.target.value = ''; // Reset
