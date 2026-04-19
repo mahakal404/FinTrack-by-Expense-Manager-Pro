@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { LayoutDashboard, Receipt, BarChart3, Target, LogOut, Briefcase, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -28,7 +28,7 @@ export default function Sidebar() {
     <aside className="hidden lg:flex flex-col w-60 bg-white border-r border-slate-100 h-screen sticky top-0">
       {/* Logo */}
       <div className="p-6 pb-4">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3 group cursor-pointer transition-opacity hover:opacity-80">
           <img
             src="/app-logo.webp"
             alt="FinTrack Logo"
@@ -38,7 +38,7 @@ export default function Sidebar() {
             <h1 className="text-base font-bold text-slate-800">FinTrack</h1>
             <p className="text-[11px] text-slate-400 -mt-0.5">Expense Manager Pro</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Nav Links */}
