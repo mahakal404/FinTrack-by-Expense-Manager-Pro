@@ -385,3 +385,212 @@ select.input {
 .cat-color-dot:hover {
   transform: scale(1.2) !important;
 }
+
+/* ── Mobile Header ── */
+.mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid var(--color-slate-100);
+}
+
+.mobile-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-header__brand:hover {
+  opacity: 0.75;
+}
+
+.mobile-header__logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-header__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.mobile-header__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-slate-800);
+  letter-spacing: -0.01em;
+}
+
+.mobile-header__subtitle {
+  font-size: 0.625rem;
+  color: var(--color-slate-400);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.mobile-header__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  color: var(--color-slate-500);
+  background: var(--color-slate-50);
+  border: 1px solid var(--color-slate-100);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.mobile-header__action:hover {
+  background: var(--color-slate-100);
+  color: var(--color-slate-700);
+}
+
+/* ── Bottom Nav (Mobile) ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-top: 1px solid var(--color-slate-100);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 60px;
+  padding: 0 4px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  min-width: 52px;
+  flex: 1;
+  text-decoration: none;
+  color: var(--color-slate-400);
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav__item--active {
+  color: var(--color-primary-600);
+}
+
+.bottom-nav__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.bottom-nav__icon--active {
+  background: var(--color-primary-50);
+}
+
+.bottom-nav__label {
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.bottom-nav__label--active {
+  font-weight: 700;
+}
+
+/* ── Settings Logout ── */
+.settings-logout-section {
+  padding: 8px 0 24px;
+}
+
+.settings-logout-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.settings-logout-divider::before,
+.settings-logout-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-slate-200);
+}
+
+.settings-logout-divider__text {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-slate-400);
+}
+
+.settings-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-logout-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+.settings-logout-btn:active {
+  transform: scale(0.98);
+}
+
+.settings-logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+

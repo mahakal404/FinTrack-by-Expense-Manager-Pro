@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
-import { Settings as SettingsIcon, Save, CalendarDays, RefreshCw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Settings as SettingsIcon, Save, CalendarDays, RefreshCw, LogOut } from 'lucide-react';
 import Card from '../components/UI/Card';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
   const { settings, updateSettings } = useSettings();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   
   const [localSettings, setLocalSettings] = useState({
      dateFormat: 'dd/MM/yyyy',
@@ -14,6 +18,7 @@ export default function Settings() {
      monthlySalary: 0
   });
   const [saving, setSaving] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
      if (settings) {
@@ -61,6 +66,17 @@ export default function Settings() {
       toast.error("Failed to update preferences");
     }
     setSaving(false);
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      toast.error("Failed to log out");
+      setLoggingOut(false);
+    }
   };
 
   const today = new Date();
@@ -176,6 +192,26 @@ export default function Settings() {
          </form>
       </Card>
 
+      {/* Logout Section */}
+      <div className="settings-logout-section">
+        <div className="settings-logout-divider">
+          <span className="settings-logout-divider__text">Account</span>
+        </div>
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="settings-logout-btn"
+          id="settings-logout-button"
+        >
+          <LogOut size={18} />
+          {loggingOut ? 'Signing Out...' : 'Sign Out'}
+        </button>
+        <p className="text-xs text-slate-400 text-center mt-2">
+          You will be redirected to the login page
+        </p>
+      </div>
+
     </div>
   );
 }
+
