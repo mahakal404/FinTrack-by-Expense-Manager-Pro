@@ -22,6 +22,9 @@ export default function Ledger() {
   const [form, setForm] = useState({ name: '', payerName: '', openingBalance: '' });
   
   // Tab state: 'active' | 'closed'
+  const [viewTab, setViewTab] = useState('active');
+  const [exporting, setExporting] = useState(false);
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [includeReceiptsInPdf, setIncludeReceiptsInPdf] = useState(true);
