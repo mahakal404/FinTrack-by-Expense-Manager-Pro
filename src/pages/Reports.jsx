@@ -99,7 +99,7 @@ export default function Reports() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in reports-container">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -163,17 +163,19 @@ export default function Reports() {
             <h2 className="text-base font-semibold text-slate-800">Income vs Expense</h2>
           </div>
           <p className="text-xs text-slate-500 mb-4">A simple trend view for the last 10 days.</p>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={chartTooltipStyle} formatter={(val) => formatCurrency(val)} />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Line type="monotone" dataKey="Income" stroke="#14b8a6" strokeWidth={2.5} dot={false} />
-              <Line type="monotone" dataKey="Expense" stroke="#6366f1" strokeWidth={2.5} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={chartTooltipStyle} formatter={(val) => formatCurrency(val)} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Line type="monotone" dataKey="Income" stroke="#14b8a6" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="Expense" stroke="#6366f1" strokeWidth={2.5} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
 
         {/* Category Donut */}
@@ -182,27 +184,29 @@ export default function Reports() {
           <p className="text-xs text-slate-500 mb-3">Where your money went.</p>
           {categoryData.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(val) => formatCurrency(val)}
-                    contentStyle={chartTooltipStyle}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="chart-wrapper chart-wrapper--donut">
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(val) => formatCurrency(val)}
+                      contentStyle={chartTooltipStyle}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
               {/* Legend */}
               <div className="space-y-1.5 mt-3">
                 {categoryData.slice(0, 5).map(cat => (
@@ -231,18 +235,20 @@ export default function Reports() {
           <h2 className="text-base font-semibold text-slate-800">Daily expenses</h2>
         </div>
         <p className="text-xs text-slate-500 mb-4">Quick bars for scanning days with higher spending.</p>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={dailyBarData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <Tooltip
-              contentStyle={chartTooltipStyle}
-              formatter={(val) => formatCurrency(val)}
-            />
-            <Bar dataKey="amount" fill="#6366f1" radius={[6, 6, 0, 0]} maxBarSize={48} />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="chart-wrapper">
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={dailyBarData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={chartTooltipStyle}
+                formatter={(val) => formatCurrency(val)}
+              />
+              <Bar dataKey="amount" fill="#6366f1" radius={[6, 6, 0, 0]} maxBarSize={48} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </Card>
     </div>
   );

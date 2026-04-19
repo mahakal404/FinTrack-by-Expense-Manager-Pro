@@ -631,3 +631,23 @@ select.input {
   transform: none;
 }
 
+/* ── Responsive Chart Containers ── */
+.reports-container {
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.chart-wrapper {
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-height: 280px; /* matched to chart height in Reports.jsx */
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-wrapper--donut {
+  min-height: 200px;
+}
+
+
