@@ -22,10 +22,9 @@ export default function Ledger() {
   const [form, setForm] = useState({ name: '', payerName: '', openingBalance: '' });
   
   // Tab state: 'active' | 'closed'
-  const [viewTab, setViewTab] = useState('active');
-  const [exporting, setExporting] = useState(false);
-  const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [includeReceiptsInPdf, setIncludeReceiptsInPdf] = useState(true);
 
   // Nested Expense Edit state
   const [editExpense, setEditExpense] = useState(null);
@@ -104,12 +103,20 @@ export default function Ledger() {
   const totalSpent = selectedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
   const closingBalance = selectedProject ? ((selectedProject.openingBalance || 0) - totalSpent) : 0;
 
-  const handleExport = async () => {
+  const handleExport = () => {
     if (!selectedProject) return;
+    setShowExportModal(true);
+  };
+
+  const executeExport = async () => {
     setExporting(true);
-    await new Promise(r => setTimeout(r, 50));
+    setShowExportModal(false);
+    // Smooth delay for UI feel
+    await new Promise(r => setTimeout(r, 100));
     try {
-      await exportLedgerPDF(selectedProject, selectedExpenses, categories, settings);
+      await exportLedgerPDF(selectedProject, selectedExpenses, categories, settings, {
+        includeReceipts: includeReceiptsInPdf
+      });
     } catch (err) {
       toast.error(`Export Error: ${err.message}`);
       console.error(err);
@@ -420,6 +427,53 @@ export default function Ledger() {
          onClose={() => setViewReceiptUrl(null)}
          url={viewReceiptUrl}
       />
+
+      {/* Download Settings Modal */}
+      <Modal 
+        isOpen={showExportModal} 
+        onClose={() => setShowExportModal(false)} 
+        title="Download Settings" 
+        size="sm"
+      >
+        <div className="space-y-6 py-2">
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                <FileText size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-800">Include Receipts</p>
+                <p className="text-[10px] text-slate-500">Embed itemized images/PDFs</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={includeReceiptsInPdf} 
+                onChange={e => setIncludeReceiptsInPdf(e.target.checked)} 
+              />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+            </label>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl">
+             <p className="text-[11px] text-amber-800 flex gap-2">
+               <AlertTriangle size={14} className="shrink-0" />
+               Note: Including receipts will make the PDF file size larger.
+             </p>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setShowExportModal(false)} className="flex-1 btn bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-3 rounded-xl border-transparent">
+              Cancel
+            </button>
+            <button onClick={executeExport} className="flex-1 btn bg-slate-900 hover:bg-slate-800 text-amber-500 font-bold py-3 rounded-xl border-transparent shadow-lg shadow-slate-900/20">
+              Download PDF
+            </button>
+          </div>
+        </div>
+      </Modal>
 
     </div>
   );
