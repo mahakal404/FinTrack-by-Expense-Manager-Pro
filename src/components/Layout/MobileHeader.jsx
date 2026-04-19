@@ -3,7 +3,7 @@ import { Settings } from 'lucide-react';
 
 export default function MobileHeader() {
   return (
-    <header className="mobile-header lg:hidden">
+    <header className="mobile-header">
       <Link to="/" className="mobile-header__brand">
         <img
           src="/app-logo.webp"

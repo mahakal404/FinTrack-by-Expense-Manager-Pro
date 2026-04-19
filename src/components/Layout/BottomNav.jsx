@@ -11,7 +11,7 @@ const navItems = [
 
 export default function BottomNav() {
   return (
-    <nav className="bottom-nav lg:hidden">
+    <nav className="bottom-nav">
       <div className="bottom-nav__inner">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink

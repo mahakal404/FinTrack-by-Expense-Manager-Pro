@@ -386,22 +386,52 @@ select.input {
   transform: scale(1.2) !important;
 }
 
+/* ── Sidebar (Desktop only) ── */
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    display: flex;
+  }
+}
+
+/* ── App Main Content ── */
+.app-main {
+  padding-top: 56px;    /* space for mobile header */
+  padding-bottom: 80px; /* space for bottom nav */
+}
+
+@media (min-width: 768px) {
+  .app-main {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 /* ── Mobile Header ── */
 .mobile-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 45;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-bottom: 1px solid var(--color-slate-100);
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 45;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-bottom: 1px solid var(--color-slate-100);
+  }
 }
 
 .mobile-header__brand {
@@ -466,16 +496,23 @@ select.input {
 
 /* ── Bottom Nav (Mobile) ── */
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-top: 1px solid var(--color-slate-100);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    display: block;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-top: 1px solid var(--color-slate-100);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 .bottom-nav__inner {

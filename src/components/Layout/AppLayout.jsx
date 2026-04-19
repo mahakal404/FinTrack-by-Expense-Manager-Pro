@@ -14,7 +14,7 @@ export default function AppLayout() {
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-screen">
         <MobileHeader />
-        <main className="flex-1 pb-20 lg:pb-0 pt-[56px] lg:pt-0">
+        <main className="app-main flex-1">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <Outlet />
           </div>

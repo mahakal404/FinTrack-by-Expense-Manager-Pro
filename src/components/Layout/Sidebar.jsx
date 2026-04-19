@@ -25,7 +25,7 @@ export default function Sidebar() {
   const displayInitial = displayName.charAt(0).toUpperCase();
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 bg-white border-r border-slate-100 h-screen sticky top-0">
+    <aside className="sidebar flex-col w-60 bg-white border-r border-slate-100 h-screen sticky top-0">
       {/* Logo */}
       <div className="p-6 pb-4">
         <Link to="/" className="flex items-center gap-3 group cursor-pointer transition-opacity hover:opacity-80">
