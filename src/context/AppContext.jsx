@@ -27,7 +27,6 @@ export function AppProvider({ children }) {
   const [customCategories, setCustomCategories] = useState([]);
   const [goals, setGoals] = useState([]);
   const [projects, setProjects] = useState([]); // <--- NEW collection state
-  const [projects, setProjects] = useState([]); // <--- NEW collection state
   const [loadingData, setLoadingData] = useState(true);
 
   const categories = [...DEFAULT_CATEGORIES, ...customCategories];
