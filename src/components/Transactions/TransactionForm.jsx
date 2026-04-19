@@ -10,12 +10,11 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import db from '../../utils/db'; // LocalForage instance
 
 export default function TransactionForm({ isOpen, onClose, editData = null }) {
   const { categories, projects, addExpense, updateExpense, settings } = useApp();
-  const { uploadFile } = useFirestore('expenses');
   
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -76,21 +75,23 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
+
     try {
-      // Add generous 45-second timeout in case Storage hangs, specifically for larger RAW images
-      const url = await Promise.race([
-        uploadFile(file),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Network Timeout: Request took more than 45 seconds.")), 45000))
-      ]);
-      setForm(prev => ({ ...prev, receiptUrl: url }));
-      toast.success("Receipt attached!");
+      // Generate a unique local key for the receipt
+      const localFileKey = `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      
+      // Save the Blob/File directly to IndexedDB
+      await db.setItem(localFileKey, file);
+      
+      // Update form state with the key (this string syncs to Firestore)
+      setForm(prev => ({ ...prev, receiptUrl: localFileKey }));
+      
+      toast.success("Attached successfully");
     } catch (err) {
-      console.error('[TransactionForm] Upload Hook Failed:', err);
-      toast.error(err.message || 'Upload failed. Please try again.');
+      console.error('[TransactionForm] Local Storage Failed:', err);
+      toast.error('Local attachment failed. Please try again.');
     } finally {
-      setUploading(false);
-      if (e.target) e.target.value = ''; // Reset
+      if (e.target) e.target.value = ''; // Reset file input
     }
   };
 
@@ -323,14 +324,13 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
             <label className="label">Receipt (optional)</label>
             <div className="flex items-center gap-3">
               <label className="btn btn-outline btn-sm cursor-pointer border-slate-200 relative overflow-hidden group">
-                <Upload size={14} className={uploading ? "animate-bounce" : ""} />
-                {uploading ? 'Processing...' : 'Upload File'}
+                <Upload size={14} />
+                Upload File
                 <input
                   type="file"
                   accept=".jpg,.jpeg,.png,.pdf"
                   className="hidden"
                   onChange={handleFileUpload}
-                  disabled={uploading}
                 />
               </label>
               
