@@ -8,7 +8,7 @@ import {
 import Card from '../components/UI/Card';
 import EmptyState from '../components/UI/EmptyState';
 import TransactionForm from '../components/Transactions/TransactionForm';
-import ReceiptModal from '../components/Transactions/ReceiptModal';
+import ReceiptViewer from '../components/Transactions/ReceiptViewer';
 import ConfirmDialog from '../components/UI/ConfirmDialog';
 import { exportExpensesPDF } from '../utils/pdfExport';
 import { RenderIcon } from '../utils/icons';
@@ -236,10 +236,11 @@ export default function Transactions() {
                     {exp.receiptUrl && (
                       <button
                         onClick={() => { setReceiptUrl(exp.receiptUrl); setShowReceipt(true); }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                        title="View receipt"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-colors flex items-center gap-1 group relative"
+                        title="View Receipt"
                       >
-                        <Paperclip size={14} />
+                        <Paperclip size={14} className="group-hover:rotate-12 transition-transform" />
+                        <span className="text-[10px] font-medium hidden sm:group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-2 py-1 rounded shadow-lg whitespace-nowrap">View Receipt</span>
                       </button>
                     )}
 
@@ -288,10 +289,10 @@ export default function Transactions() {
         onClose={() => { setShowForm(false); setEditData(null); }}
         editData={editData}
       />
-      <ReceiptModal
+      <ReceiptViewer
         isOpen={showReceipt}
         onClose={() => setShowReceipt(false)}
-        receiptUrl={receiptUrl}
+        url={receiptUrl}
       />
       <ConfirmDialog
         isOpen={!!confirmDelete}
