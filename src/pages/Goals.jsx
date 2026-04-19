@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Plus, Edit3, Trash2, Target, Calendar } from 'lucide-react';
 import Card from '../components/UI/Card';
 import ProgressBar from '../components/UI/ProgressBar';
@@ -10,6 +11,7 @@ import { RenderIcon } from '../utils/icons';
 
 export default function Goals() {
   const { goals, expenses, salary, addGoal, updateGoal, deleteGoal } = useApp();
+  const { formatCurrency } = useSettings();
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -73,7 +75,7 @@ export default function Goals() {
             </div>
             <div>
               <p className="text-xs text-primary-700 font-medium">Estimated Monthly Savings</p>
-              <p className="text-lg font-bold text-primary-800">₹{avgMonthlySavings.toLocaleString()}</p>
+              <p className="text-lg font-bold text-primary-800">{formatCurrency(avgMonthlySavings)}</p>
             </div>
           </div>
         </Card>
@@ -137,10 +139,10 @@ export default function Goals() {
                 {/* Amounts */}
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs text-slate-500">
-                    ₹{(goal.currentAmount || 0).toLocaleString()} saved
+                    {formatCurrency(goal.currentAmount || 0)} saved
                   </span>
                   <span className="text-xs font-semibold text-slate-700">
-                    ₹{(goal.targetAmount || 0).toLocaleString()}
+                    {formatCurrency(goal.targetAmount || 0)}
                   </span>
                 </div>
               </Card>

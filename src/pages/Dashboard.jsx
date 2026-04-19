@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { format } from 'date-fns';
 import {
   ArrowDownLeft, ArrowUpRight, Wallet, TrendingUp,
@@ -24,8 +25,9 @@ import { RenderIcon } from '../utils/icons';
 
 export default function Dashboard() {
   const {
-    expenses, salary, categories, settings, deleteExpense
+    expenses, salary, categories, deleteExpense
   } = useApp();
+  const { settings, formatCurrency } = useSettings();
 
   const [showAddTx, setShowAddTx] = useState(false);
   const [showSalary, setShowSalary] = useState(false);
@@ -99,7 +101,7 @@ export default function Dashboard() {
   const handleExport = (type) => {
     setExportMenuOpen(false);
     if (type === 'all') {
-      exportExpensesPDF(expenses, categories, null, settings.currency);
+      exportExpensesPDF(expenses, categories, null, settings);
     } else {
       // Export current month only
       const now = new Date();
@@ -165,29 +167,29 @@ export default function Dashboard() {
         <StatCard
           icon={ArrowDownLeft}
           label="Total Income"
-          value={`₹${totalIncome.toLocaleString()}`}
+          value={formatCurrency(totalIncome)}
           subtitle="All income transactions"
           accentColor="success"
         />
         <StatCard
           icon={ArrowUpRight}
           label="Total Expenses"
-          value={`₹${totalExpenses.toLocaleString()}`}
+          value={formatCurrency(totalExpenses)}
           subtitle="All expense transactions"
           accentColor="danger"
         />
         <StatCard
           icon={Wallet}
           label="Net Balance"
-          value={`₹${netBalance.toLocaleString()}`}
+          value={formatCurrency(netBalance)}
           subtitle="Income minus expenses"
           accentColor="primary"
         />
         <StatCard
           icon={TrendingUp}
           label="Available to Spend"
-          value={`₹${availableToSpend.toLocaleString()}`}
-          subtitle={`Salary ₹${totalIncome.toLocaleString()} included`}
+          value={formatCurrency(availableToSpend)}
+          subtitle={`Salary ${formatCurrency(totalIncome)} included`}
           accentColor="teal"
         />
       </div>
@@ -214,8 +216,8 @@ export default function Dashboard() {
           </div>
           <ProgressBar value={totalExpenses} max={budget || totalIncome} showPercent={false} size="lg" />
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-slate-500">Rs. {totalExpenses.toLocaleString()} spent</span>
-            <span className="text-xs text-slate-500">Rs. {(budget || totalIncome).toLocaleString()} total income</span>
+            <span className="text-xs text-slate-500">{formatCurrency(totalExpenses)} spent</span>
+            <span className="text-xs text-slate-500">{formatCurrency(budget || totalIncome)} total income</span>
           </div>
         </Card>
 
@@ -240,7 +242,7 @@ export default function Dashboard() {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(val) => `₹${val.toLocaleString()}`}
+                  formatter={(val) => formatCurrency(val)}
                   contentStyle={{
                     background: 'white',
                     border: 'none',
@@ -299,7 +301,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-slate-800">
-                        ₹{exp.amount?.toLocaleString()}
+                        {formatCurrency(exp.amount)}
                       </span>
                       {exp.receiptUrl && (
                         <button 
@@ -342,9 +344,9 @@ export default function Dashboard() {
           </div>
           <div className="space-y-3 mb-4">
             {[
-              { icon: CalendarDays, label: 'Budget', value: `₹${(budget || totalIncome).toLocaleString()}`, color: 'text-primary-600', bg: 'bg-primary-50' },
-              { icon: ArrowUpRight, label: 'Spent', value: `₹${totalExpenses.toLocaleString()}`, color: 'text-danger-500', bg: 'bg-danger-50' },
-              { icon: Wallet, label: 'Balance', value: `₹${netBalance.toLocaleString()}`, color: 'text-success-600', bg: 'bg-success-50' },
+              { icon: CalendarDays, label: 'Budget', value: formatCurrency(budget || totalIncome), color: 'text-primary-600', bg: 'bg-primary-50' },
+              { icon: ArrowUpRight, label: 'Spent', value: formatCurrency(totalExpenses), color: 'text-danger-500', bg: 'bg-danger-50' },
+              { icon: Wallet, label: 'Balance', value: formatCurrency(netBalance), color: 'text-success-600', bg: 'bg-success-50' },
             ].map(({ icon: Icon, label, value, color, bg }) => (
               <div key={label} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
                 <div className="flex items-center gap-3">
@@ -369,7 +371,7 @@ export default function Dashboard() {
                 <p className="text-xs font-semibold text-primary-700">Tip</p>
                 <p className="text-xs text-primary-600 leading-relaxed">
                   {settings.monthlySalary > 0 ? (
-                    `Your budget is currently synced with your ${settings.currency}${settings.monthlySalary.toLocaleString()} salary (80% rule). Keep it up!`
+                    `Your budget is currently synced with your ${formatCurrency(settings.monthlySalary)} salary (80% rule). Keep it up!`
                   ) : (
                     "If you set your budget near 80% of salary in Settings, you'll see warnings early — before the month gets tight."
                   )}

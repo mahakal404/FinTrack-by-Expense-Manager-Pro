@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Settings as SettingsIcon, Save, CalendarDays, RefreshCw } from 'lucide-react';
 import Card from '../components/UI/Card';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
-  const { settings, updateSettings } = useApp();
+  const { settings, updateSettings } = useSettings();
   
   const [localSettings, setLocalSettings] = useState({
      dateFormat: 'dd/MM/yyyy',

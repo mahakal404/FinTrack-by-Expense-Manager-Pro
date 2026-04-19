@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import Modal from '../UI/Modal';
+import { useSettings } from '../../context/SettingsContext';
 import { RenderIcon } from '../../utils/icons';
 
 const ICONS = ['Target', 'Plane', 'Home', 'Car', 'Monitor', 'Gift', 'GraduationCap', 'Activity', 'Music', 'Gamepad2', 'Zap', 'Briefcase', 'Coffee', 'ShoppingBag', 'Dog'];
 
 export default function GoalForm({ isOpen, onClose, onSubmit, editData = null }) {
+  const { settings } = useSettings();
   const [form, setForm] = useState({
     title: '',
     targetAmount: '',
@@ -62,7 +64,7 @@ export default function GoalForm({ isOpen, onClose, onSubmit, editData = null })
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Target Amount (₹)</label>
+            <label className="label">Target Amount ({settings.currency})</label>
             <input
               type="number"
               className="input"
@@ -74,7 +76,7 @@ export default function GoalForm({ isOpen, onClose, onSubmit, editData = null })
             />
           </div>
           <div>
-            <label className="label">Saved So Far (₹)</label>
+            <label className="label">Saved So Far ({settings.currency})</label>
             <input
               type="number"
               className="input"

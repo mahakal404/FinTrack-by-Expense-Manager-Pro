@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useSettings } from '../../context/SettingsContext';
 import { useFirestore } from '../../hooks/useFirestore';
 import Modal from '../UI/Modal';
 import { Paperclip, Upload, ChevronDown, Plus, Briefcase, Eye } from 'lucide-react';
@@ -13,7 +14,8 @@ import toast from 'react-hot-toast';
 import db from '../../utils/db'; // LocalForage instance
 
 export default function TransactionForm({ isOpen, onClose, editData = null }) {
-  const { categories, projects, addExpense, updateExpense, settings } = useApp();
+  const { categories, projects, addExpense, updateExpense } = useApp();
+  const { settings } = useSettings();
   
   const [saving, setSaving] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -152,7 +154,7 @@ export default function TransactionForm({ isOpen, onClose, editData = null }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Amount (₹)</label>
+              <label className="label">Amount ({settings.currency})</label>
               <input
                 type="number"
                 className="input"

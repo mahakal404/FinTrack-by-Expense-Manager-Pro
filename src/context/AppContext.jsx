@@ -27,7 +27,7 @@ export function AppProvider({ children }) {
   const [customCategories, setCustomCategories] = useState([]);
   const [goals, setGoals] = useState([]);
   const [projects, setProjects] = useState([]); // <--- NEW collection state
-  const [settings, setSettings] = useState({ monthlyBudget: 12000, monthlySalary: 0, currency: '₹', dateFormat: 'dd/MM/yyyy' });
+  const [projects, setProjects] = useState([]); // <--- NEW collection state
   const [loadingData, setLoadingData] = useState(true);
 
   const categories = [...DEFAULT_CATEGORIES, ...customCategories];
@@ -38,7 +38,6 @@ export function AppProvider({ children }) {
       setSalary([]);
       setCustomCategories([]);
       setGoals([]);
-      setSettings({ monthlyBudget: 12000, monthlySalary: 0, currency: '₹', dateFormat: 'dd/MM/yyyy' });
       setLoadingData(false);
       return;
     }
@@ -77,16 +76,6 @@ export function AppProvider({ children }) {
     const qCategories = query(collection(db, 'users', uid, 'customCategories'));
     unsubscribes.push(onSnapshot(qCategories, (snapshot) => {
       setCustomCategories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }));
-
-    // Settings (users/{uid})
-    unsubscribes.push(onSnapshot(doc(db, 'users', uid), (docSnap) => {
-      const defaults = { monthlyBudget: 12000, monthlySalary: 0, currency: '₹', dateFormat: 'dd/MM/yyyy' };
-      if (docSnap.exists() && docSnap.data().settings) {
-        setSettings({ ...defaults, ...docSnap.data().settings });
-      } else {
-        setSettings(defaults);
-      }
     }));
 
     // Resolve initial data loading splash
@@ -195,21 +184,13 @@ export function AppProvider({ children }) {
     await deleteDoc(doc(db, 'users', currentUser.uid, 'customCategories', id));
   }, [currentUser]);
 
-  const updateSettings = useCallback(async (newSettings) => {
-    if (!currentUser) return;
-    const merged = { ...settings, ...newSettings };
-    // Save under user's root document -> 'settings' map
-    await setDoc(doc(db, 'users', currentUser.uid), { settings: merged }, { merge: true });
-    setSettings(merged);
-  }, [currentUser, settings]);
-
   const value = {
-    expenses, projectExpenses, salary, customCategories, categories, goals, projects, settings, loading: loadingData,
+    expenses, projectExpenses, salary, customCategories, categories, goals, projects, loading: loadingData,
     addExpense, updateExpense, deleteExpense,
     addSalary, updateSalary, deleteSalary,
     addGoal, updateGoal, deleteGoal,
     addProject, updateProject, deleteProject,
-    addCategory, deleteCategory, updateSettings,
+    addCategory, deleteCategory
   };
 
   return (

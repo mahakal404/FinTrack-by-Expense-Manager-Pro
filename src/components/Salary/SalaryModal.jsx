@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useSettings } from '../../context/SettingsContext';
 import Modal from '../UI/Modal';
 import ConfirmDialog from '../UI/ConfirmDialog';
 import { Trash2, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function SalaryModal({ isOpen, onClose }) {
-  const { salary, addSalary, updateSalary, deleteSalary, settings, updateSettings } = useApp();
+  const { salary, addSalary, updateSalary, deleteSalary } = useApp();
+  const { settings, updateSettings, formatCurrency } = useSettings();
   const [form, setForm] = useState({ amount: '', month: '', year: '' });
   const [budget, setBudget] = useState('');
   const [saving, setSaving] = useState(false);
@@ -111,9 +112,9 @@ export default function SalaryModal({ isOpen, onClose }) {
           <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             {/* Salary Section */}
             <div className="bg-slate-800/80 rounded-xl p-4 border border-slate-700/50">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Monthly Salary (₹)</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Monthly Salary ({settings.currency})</label>
                 <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500 font-semibold">₹</div>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500 font-semibold">{settings.currency}</div>
                     <input
                         type="number"
                         className="w-full bg-slate-900 border border-slate-700 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-white rounded-lg pl-8 pr-3 py-2.5 text-lg"
@@ -128,7 +129,7 @@ export default function SalaryModal({ isOpen, onClose }) {
                     <div className="mt-2.5 flex items-start gap-2 bg-emerald-500/10 text-emerald-400 p-2 rounded-lg text-sm font-medium animate-fade-in border border-emerald-500/20">
                         <Sparkles size={16} className="shrink-0 mt-0.5" />
                         <div>
-                           <span>Suggested Budget (80%): ₹{(suggestedBudget).toLocaleString()}</span>
+                           <span>Suggested Budget (80%): {formatCurrency(suggestedBudget)}</span>
                            <p className="text-[10px] text-emerald-500/80 font-normal leading-tight mt-0.5">Automatically calculates 80% to enforce safe 20% saving margins natively.</p>
                         </div>
                     </div>
@@ -189,7 +190,7 @@ export default function SalaryModal({ isOpen, onClose }) {
                   {salary.map(s => (
                     <div key={s.id} className="group flex items-center justify-between bg-slate-800 border border-slate-700/60 rounded-xl pl-4 pr-2 py-2.5 hover:border-slate-600 transition-colors shadow-sm">
                       <div className="flex flex-col">
-                        <span className="text-[15px] font-bold text-slate-100 leading-tight">₹{s.amount?.toLocaleString()}</span>
+                        <span className="text-[15px] font-bold text-slate-100 leading-tight">{formatCurrency(s.amount)}</span>
                         <span className="text-[11px] uppercase tracking-wider text-emerald-500/80 font-medium">
                           {months[s.month - 1]} {s.year}
                         </span>

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Briefcase, Plus, TrendingUp, TrendingDown, ArrowRight, FileText, FileDown, CheckCircle2, ChevronRight, Calculator, Archive, Trash2, Edit3, History, Activity, RefreshCw, AlertTriangle } from 'lucide-react';
 import { format, isValid } from 'date-fns';
 import Card from '../components/UI/Card';
@@ -12,7 +13,8 @@ import TransactionForm from '../components/Transactions/TransactionForm';
 import ReceiptViewer from '../components/Transactions/ReceiptViewer';
 
 export default function Ledger() {
-  const { projects, projectExpenses, categories, addProject, updateProject, deleteProject, settings, deleteExpense } = useApp();
+  const { projects, projectExpenses, categories, addProject, updateProject, deleteProject, deleteExpense } = useApp();
+  const { settings, formatCurrency } = useSettings();
   
   const [showForm, setShowForm] = useState(false);
   const [activeProjectId, setActiveProjectId] = useState(null);
@@ -282,16 +284,16 @@ export default function Ledger() {
                           {/* 3 Column Stats */}
                           <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
                               <div>
-                                 <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><TrendingUp size={12} className="text-emerald-400" /> Funds Received ({settings?.currency || '₹'})</p>
-                                 <p className="text-lg sm:text-2xl font-bold">{settings?.currency || '₹'}{(selectedProject.openingBalance || 0).toLocaleString('en-IN')}</p>
+                                 <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><TrendingUp size={12} className="text-emerald-400" /> Funds Received</p>
+                                 <p className="text-lg sm:text-2xl font-bold">{formatCurrency(selectedProject.openingBalance || 0)}</p>
                               </div>
                               <div>
                                  <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><TrendingDown size={12} className="text-rose-400" /> Total Spent</p>
-                                 <p className="text-lg sm:text-2xl font-bold">{settings?.currency || '₹'}{totalSpent.toLocaleString('en-IN')}</p>
+                                 <p className="text-lg sm:text-2xl font-bold">{formatCurrency(totalSpent)}</p>
                               </div>
                               <div>
                                  <p className="text-[10px] sm:text-xs text-amber-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1"><Calculator size={12} /> Closing Balance</p>
-                                 <p className="text-lg sm:text-2xl font-bold text-amber-500">{settings?.currency || '₹'}{closingBalance.toLocaleString('en-IN')}</p>
+                                 <p className="text-lg sm:text-2xl font-bold text-amber-500">{formatCurrency(closingBalance)}</p>
                               </div>
                           </div>
                        </div>
@@ -333,7 +335,7 @@ export default function Ledger() {
                                        </div>
                                        
                                        <div className="text-right w-20 flex-shrink-0">
-                                          <p className="text-sm font-bold text-slate-800">{settings?.currency || '₹'}{exp.amount?.toLocaleString('en-IN')}</p>
+                                          <p className="text-sm font-bold text-slate-800">{formatCurrency(exp.amount)}</p>
                                           {exp.receiptUrl && <span onClick={(e) => { e.stopPropagation(); setViewReceiptUrl(exp.receiptUrl); }} className="text-[10px] font-medium text-slate-400 bg-slate-100 hover:bg-amber-100 hover:text-amber-700 hover:border-amber-200 cursor-pointer px-2 py-0.5 rounded-full mt-1 inline-block border border-slate-200 shadow-sm transition-colors">View Receipt</span>}
                                        </div>
                                     </div>
@@ -368,7 +370,7 @@ export default function Ledger() {
               <input type="text" className="input bg-slate-50" placeholder="e.g. Acme Corp" value={form.payerName} onChange={e => setForm(p => ({...p, payerName: e.target.value}))} />
            </div>
            <div>
-              <label className="label text-emerald-600 font-semibold">Funds Received ({settings?.currency || '₹'})</label>
+              <label className="label text-emerald-600 font-semibold">Funds Received ({settings.currency})</label>
               <input type="number" className="input border-emerald-500/30 focus:border-emerald-500 focus:ring-emerald-500" placeholder="0.00" value={form.openingBalance} onChange={e => setForm(p => ({...p, openingBalance: e.target.value}))} required />
               <p className="text-[11px] text-slate-500 mt-1">This acts as the opening balance for your ledger.</p>
            </div>

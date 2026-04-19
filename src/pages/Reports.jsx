@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { format, subDays, startOfWeek, startOfMonth, isValid } from 'date-fns';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -18,7 +19,8 @@ const RANGE_OPTIONS = [
 ];
 
 export default function Reports() {
-  const { expenses, salary, categories, settings } = useApp();
+  const { expenses, salary, categories } = useApp();
+  const { settings, formatCurrency } = useSettings();
   const [range, setRange] = useState('month');
 
   const rangeFilteredExpenses = useMemo(() => {
@@ -140,14 +142,14 @@ export default function Reports() {
         </Card>
         <Card className="p-4 text-center">
           <p className="text-xs text-slate-500">Total Spent</p>
-          <p className="text-xl font-bold text-danger-600">₹{totalFiltered.toLocaleString()}</p>
+          <p className="text-xl font-bold text-danger-600">{formatCurrency(totalFiltered)}</p>
         </Card>
         <Card className="p-4 text-center sm:col-span-1 col-span-2">
           <p className="text-xs text-slate-500">Avg per Day</p>
           <p className="text-xl font-bold text-primary-600">
-            ₹{rangeFilteredExpenses.length > 0
-              ? Math.round(totalFiltered / Math.max(1, new Set(rangeFilteredExpenses.map(e => e.date)).size)).toLocaleString()
-              : 0
+            {rangeFilteredExpenses.length > 0
+              ? formatCurrency(Math.round(totalFiltered / Math.max(1, new Set(rangeFilteredExpenses.map(e => e.date)).size)))
+              : formatCurrency(0)
             }
           </p>
         </Card>
@@ -166,7 +168,7 @@ export default function Reports() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={chartTooltipStyle} formatter={(val) => `₹${val.toLocaleString()}`} />
+              <Tooltip contentStyle={chartTooltipStyle} formatter={(val) => formatCurrency(val)} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Line type="monotone" dataKey="Income" stroke="#14b8a6" strokeWidth={2.5} dot={false} />
               <Line type="monotone" dataKey="Expense" stroke="#6366f1" strokeWidth={2.5} dot={false} />
@@ -196,7 +198,7 @@ export default function Reports() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(val) => `₹${val.toLocaleString()}`}
+                    formatter={(val) => formatCurrency(val)}
                     contentStyle={chartTooltipStyle}
                   />
                 </PieChart>
@@ -209,7 +211,7 @@ export default function Reports() {
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
                       <span className="text-xs text-slate-600">{cat.name}</span>
                     </div>
-                    <span className="text-xs font-medium text-slate-700">₹{cat.value.toLocaleString()}</span>
+                    <span className="text-xs font-medium text-slate-700">{formatCurrency(cat.value)}</span>
                   </div>
                 ))}
               </div>
@@ -236,7 +238,7 @@ export default function Reports() {
             <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={chartTooltipStyle}
-              formatter={(val) => `₹${val.toLocaleString()}`}
+              formatter={(val) => formatCurrency(val)}
             />
             <Bar dataKey="amount" fill="#6366f1" radius={[6, 6, 0, 0]} maxBarSize={48} />
           </BarChart>

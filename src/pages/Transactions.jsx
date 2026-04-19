@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { format } from 'date-fns';
 import {
   Search, Plus, Filter, Edit3, Trash2, Paperclip,
@@ -14,7 +15,8 @@ import { exportExpensesPDF } from '../utils/pdfExport';
 import { RenderIcon } from '../utils/icons';
 
 export default function Transactions() {
-  const { expenses, categories, deleteExpense, settings } = useApp();
+  const { expenses, categories, deleteExpense } = useApp();
+  const { settings, formatCurrency } = useSettings();
 
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -230,7 +232,7 @@ export default function Transactions() {
                   {/* Amount + Actions */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-800 whitespace-nowrap">
-                      ₹{exp.amount?.toLocaleString()}
+                      {formatCurrency(exp.amount)}
                     </span>
 
                     {exp.receiptUrl && (
