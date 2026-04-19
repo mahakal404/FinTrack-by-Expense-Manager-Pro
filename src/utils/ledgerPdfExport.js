@@ -177,13 +177,22 @@ export const exportLedgerPDF = async (project, expenses, categories, settings = 
                 const imgW = 13;
                 const imgH = 13;
                 doc.addImage(imageMap[exp.id], 'JPEG', imgX, imgY, imgW, imgH);
-                // Make the image clickable
+                // Make the image clickable with an overlay link
                 doc.link(imgX, imgY, imgW, imgH, { url: bUrl });
               } else {
-                doc.setTextColor(59, 130, 246);
+                // Link styling: bright blue and underlined
+                doc.setTextColor(0, 0, 255);
                 doc.setFontSize(8);
-                const isPdf = exp.receiptUrl.toLowerCase().includes('.pdf');
-                doc.textWithLink(isPdf ? 'View PDF' : 'View Image', data.cell.x + 4, data.cell.y + (data.row.height / 2) + 1.5, { url: bUrl });
+                const text = 'View Receipt';
+                const textX = data.cell.x + 4;
+                const textY = data.cell.y + (data.row.height / 2) + 1.5;
+                
+                doc.textWithLink(text, textX, textY, { url: bUrl });
+                
+                // Add manual underline
+                const textWidth = doc.getTextWidth(text);
+                doc.setDrawColor(0, 0, 255);
+                doc.line(textX, textY + 0.5, textX + textWidth, textY + 0.5);
               }
            }
         }
