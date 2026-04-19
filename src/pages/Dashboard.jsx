@@ -47,6 +47,7 @@ export default function Dashboard() {
 
   const netBalance = totalIncome - totalExpenses;
   const budget = settings.monthlyBudget || 0;
+  const isAutoBudget = settings.monthlySalary > 0 && Math.abs(budget - (settings.monthlySalary * 0.8)) < 2;
   const budgetPercent = budget > 0 ? (totalExpenses / budget) * 100 : 0;
   const availableToSpend = totalIncome > 0 ? totalIncome - totalExpenses : budget - totalExpenses;
 
@@ -197,7 +198,14 @@ export default function Dashboard() {
         <Card className="p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-semibold text-slate-800">Monthly Budget</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold text-slate-800">Monthly Budget</h2>
+                {isAutoBudget && (
+                  <span className="flex items-center gap-1 text-[9px] bg-primary-100 text-primary-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">
+                    <Sparkles size={10} /> Regulated
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-500">{Math.round(budgetPercent)}% of income used</p>
             </div>
             <span className={`text-2xl font-bold ${budgetPercent >= 80 ? 'text-danger-500' : budgetPercent >= 60 ? 'text-warning-500' : 'text-success-600'}`}>
@@ -360,7 +368,11 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs font-semibold text-primary-700">Tip</p>
                 <p className="text-xs text-primary-600 leading-relaxed">
-                  If you set your budget near 80% of salary, you'll see warnings early — before the month gets tight.
+                  {settings.monthlySalary > 0 ? (
+                    `Your budget is currently synced with your ${settings.currency}${settings.monthlySalary.toLocaleString()} salary (80% rule). Keep it up!`
+                  ) : (
+                    "If you set your budget near 80% of salary in Settings, you'll see warnings early — before the month gets tight."
+                  )}
                 </p>
               </div>
             </div>

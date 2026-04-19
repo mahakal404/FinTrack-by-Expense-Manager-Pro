@@ -27,7 +27,7 @@ export function AppProvider({ children }) {
   const [customCategories, setCustomCategories] = useState([]);
   const [goals, setGoals] = useState([]);
   const [projects, setProjects] = useState([]); // <--- NEW collection state
-  const [settings, setSettings] = useState({ monthlyBudget: 12000, currency: '₹', dateFormat: 'dd/MM/yyyy' });
+  const [settings, setSettings] = useState({ monthlyBudget: 12000, monthlySalary: 0, currency: '₹', dateFormat: 'dd/MM/yyyy' });
   const [loadingData, setLoadingData] = useState(true);
 
   const categories = [...DEFAULT_CATEGORIES, ...customCategories];
@@ -38,7 +38,7 @@ export function AppProvider({ children }) {
       setSalary([]);
       setCustomCategories([]);
       setGoals([]);
-      setSettings({ monthlyBudget: 12000, currency: '₹' });
+      setSettings({ monthlyBudget: 12000, monthlySalary: 0, currency: '₹', dateFormat: 'dd/MM/yyyy' });
       setLoadingData(false);
       return;
     }
@@ -81,10 +81,11 @@ export function AppProvider({ children }) {
 
     // Settings (users/{uid})
     unsubscribes.push(onSnapshot(doc(db, 'users', uid), (docSnap) => {
+      const defaults = { monthlyBudget: 12000, monthlySalary: 0, currency: '₹', dateFormat: 'dd/MM/yyyy' };
       if (docSnap.exists() && docSnap.data().settings) {
-        setSettings({ ...{ monthlyBudget: 12000, currency: '₹', dateFormat: 'dd/MM/yyyy' }, ...docSnap.data().settings });
+        setSettings({ ...defaults, ...docSnap.data().settings });
       } else {
-        setSettings({ monthlyBudget: 12000, currency: '₹', dateFormat: 'dd/MM/yyyy' });
+        setSettings(defaults);
       }
     }));
 
