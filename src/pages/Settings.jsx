@@ -109,48 +109,48 @@ export default function Settings() {
                    <RefreshCw size={16} /> Budget & Region
                </h2>
                
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div>
-                       <label className="label">Monthly Salary (Reference)</label>
-                       <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">{localSettings.currency}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="label">Monthly Salary (Reference)</label>
+                        <div className="flex items-center gap-2 px-3 bg-white border border-slate-200 rounded-xl focus-within:border-primary-400 focus-within:ring-3 focus-within:ring-primary-500/10 transition-all h-[42px]">
+                           <span className="text-slate-400 font-semibold shrink-0 min-w-[12px] text-center">{localSettings.currency}</span>
+                           <input 
+                              type="number" 
+                              className="w-full bg-transparent outline-none text-sm text-slate-800 placeholder:text-slate-400" 
+                              placeholder="0.00"
+                              value={localSettings.monthlySalary} 
+                              onChange={e => setLocalSettings(p => ({ ...p, monthlySalary: e.target.value }))}
+                              min="0"
+                           />
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed"> Used for budget suggestions and automated financial planning. </p>
+                    </div>
+
+                    <div>
+                       <div className="flex items-center justify-between">
+                          <label className="label">Monthly Budget Targets</label>
+                          <button 
+                             type="button" 
+                             onClick={handleResetBudget}
+                             className="text-[10px] font-bold text-primary-600 hover:text-primary-700 uppercase tracking-tight"
+                          >
+                             Reset to 80%
+                          </button>
+                       </div>
+                       <div className="flex items-center gap-2 px-3 bg-white border border-slate-200 rounded-xl focus-within:border-primary-400 focus-within:ring-3 focus-within:ring-primary-500/10 transition-all h-[42px]">
+                          <span className="text-slate-400 font-semibold shrink-0 min-w-[12px] text-center">{localSettings.currency}</span>
                           <input 
                              type="number" 
-                             className="input pl-8" 
-                             placeholder="0.00"
-                             value={localSettings.monthlySalary} 
-                             onChange={e => setLocalSettings(p => ({ ...p, monthlySalary: e.target.value }))}
+                             className="w-full bg-transparent outline-none text-sm text-slate-800" 
+                             value={localSettings.monthlyBudget} 
+                             onChange={e => setLocalSettings(p => ({ ...p, monthlyBudget: e.target.value }))}
                              min="0"
                           />
                        </div>
-                       <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed"> Used for budget suggestions and automated financial planning. </p>
-                   </div>
-
-                   <div>
-                      <div className="flex items-center justify-between">
-                         <label className="label">Monthly Budget Targets</label>
-                         <button 
-                            type="button" 
-                            onClick={handleResetBudget}
-                            className="text-[10px] font-bold text-primary-600 hover:text-primary-700 uppercase tracking-tight"
-                         >
-                            Reset to 80%
-                         </button>
-                      </div>
-                      <div className="relative">
-                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">{localSettings.currency}</span>
-                         <input 
-                            type="number" 
-                            className="input pl-8" 
-                            value={localSettings.monthlyBudget} 
-                            onChange={e => setLocalSettings(p => ({ ...p, monthlyBudget: e.target.value }))}
-                            min="0"
-                         />
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
-                         If left blank, budget will auto-calculate as 80% of salary.
-                      </p>
-                   </div>
+                       <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                          If left blank, budget will auto-calculate as 80% of salary.
+                       </p>
+                    </div>
 
                    <div>
                       <label className="label">Currency Symbol</label>
