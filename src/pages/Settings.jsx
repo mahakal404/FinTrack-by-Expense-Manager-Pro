@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 import { Settings as SettingsIcon, Save, CalendarDays, RefreshCw, LogOut } from 'lucide-react';
 import Card from '../components/UI/Card';
 import toast from 'react-hot-toast';
@@ -9,6 +10,7 @@ import toast from 'react-hot-toast';
 export default function Settings() {
   const { settings, updateSettings } = useSettings();
   const { logout } = useAuth();
+  const { salary, updateSalary } = useApp();
   const navigate = useNavigate();
   
   const [localSettings, setLocalSettings] = useState({
@@ -22,14 +24,15 @@ export default function Settings() {
 
   useEffect(() => {
      if (settings) {
+        const currentSalary = salary && salary.length > 0 ? salary[0].amount : (settings.monthlySalary || 0);
         setLocalSettings({
             dateFormat: settings.dateFormat || 'dd/MM/yyyy',
             currency: settings.currency || '₹',
             monthlyBudget: settings.monthlyBudget || 12000,
-            monthlySalary: settings.monthlySalary || 0
+            monthlySalary: currentSalary
         });
      }
-  }, [settings]);
+  }, [settings, salary]);
 
   const handleResetBudget = () => {
     const salary = parseFloat(localSettings.monthlySalary) || 0;
@@ -46,11 +49,11 @@ export default function Settings() {
     setSaving(true);
     
     let budget = parseFloat(localSettings.monthlyBudget) || 0;
-    const salary = parseFloat(localSettings.monthlySalary) || 0;
+    const newSalaryAmt = parseFloat(localSettings.monthlySalary) || 0;
 
     // Smart Auto-Budget: If budget is 0/blank, use 80% of salary
-    if (budget === 0 && salary > 0) {
-       budget = Math.round(salary * 0.8);
+    if (budget === 0 && newSalaryAmt > 0) {
+       budget = Math.round(newSalaryAmt * 0.8);
        setLocalSettings(p => ({ ...p, monthlyBudget: budget }));
     }
 
@@ -58,9 +61,9 @@ export default function Settings() {
       await updateSettings({
          dateFormat: localSettings.dateFormat,
          currency: localSettings.currency,
-         monthlyBudget: budget,
-         monthlySalary: salary
+         monthlyBudget: budget
       });
+      await updateSalary(newSalaryAmt);
       toast.success("Settings saved successfully!");
     } catch (err) {
       toast.error("Failed to update preferences");

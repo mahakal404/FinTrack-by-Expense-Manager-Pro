@@ -108,19 +108,49 @@ export function AppProvider({ children }) {
     await deleteDoc(doc(db, 'users', currentUser.uid, 'expenses', id));
   }, [currentUser]);
 
-  const addSalary = useCallback(async (sal) => {
+  const updateSalary = useCallback(async (newSalary) => {
     if (!currentUser) return;
-    try {
-      const payload = stripUndefined({ ...sal, createdAt: new Date().toISOString() });
-      await addDoc(collection(db, 'users', currentUser.uid, 'salary'), payload);
-    } catch (e) { console.error("Firestore Error:", e); }
-  }, [currentUser]);
+    
+    let amount = 0;
+    let month = new Date().getMonth() + 1;
+    let year = new Date().getFullYear();
 
-  const updateSalary = useCallback(async (id, data) => {
-    if (!currentUser) return;
-    const payload = stripUndefined({ ...data, updatedAt: new Date().toISOString() });
-    await updateDoc(doc(db, 'users', currentUser.uid, 'salary', id), payload);
-  }, [currentUser]);
+    if (typeof newSalary === 'object' && newSalary !== null) {
+      amount = parseFloat(newSalary.amount) || 0;
+      month = parseInt(newSalary.month) || month;
+      year = parseInt(newSalary.year) || year;
+    } else {
+      amount = parseFloat(newSalary) || 0;
+      if (salary.length > 0) {
+        month = salary[0].month;
+        year = salary[0].year;
+      }
+    }
+
+    const payload = { amount, month, year, updatedAt: new Date().toISOString() };
+
+    try {
+      // a. Update the Firestore database field 'salary'.
+      await setDoc(doc(db, 'users', currentUser.uid), { 
+        settings: { monthlySalary: amount } 
+      }, { merge: true });
+
+      // Update the salary subcollection
+      if (salary.length > 0) {
+        const currentSalary = salary[0];
+        await updateDoc(doc(db, 'users', currentUser.uid, 'salary', currentSalary.id), payload);
+        
+        // b. Immediately update the global state so all components re-render.
+        setSalary(prev => prev.map(s => s.id === currentSalary.id ? { ...s, ...payload } : s));
+      } else {
+        payload.createdAt = new Date().toISOString();
+        const docRef = await addDoc(collection(db, 'users', currentUser.uid, 'salary'), payload);
+        setSalary(prev => [{ id: docRef.id, ...payload }, ...prev]);
+      }
+    } catch (e) {
+      console.error("Firestore Error (updateSalary):", e);
+    }
+  }, [currentUser, salary]);
 
   const deleteSalary = useCallback(async (id) => {
     if (!currentUser) return;
@@ -186,7 +216,7 @@ export function AppProvider({ children }) {
   const value = {
     expenses, projectExpenses, salary, customCategories, categories, goals, projects, loading: loadingData,
     addExpense, updateExpense, deleteExpense,
-    addSalary, updateSalary, deleteSalary,
+    updateSalary, deleteSalary,
     addGoal, updateGoal, deleteGoal,
     addProject, updateProject, deleteProject,
     addCategory, deleteCategory

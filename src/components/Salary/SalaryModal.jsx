@@ -7,7 +7,7 @@ import { Trash2, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function SalaryModal({ isOpen, onClose }) {
-  const { salary, addSalary, updateSalary, deleteSalary } = useApp();
+  const { salary, updateSalary, deleteSalary } = useApp();
   const { settings, updateSettings, formatCurrency } = useSettings();
   const [form, setForm] = useState({ amount: '', month: '', year: '' });
   const [budget, setBudget] = useState('');
@@ -43,17 +43,11 @@ export default function SalaryModal({ isOpen, onClose }) {
     setSaving(true);
     try {
       if (form.amount) {
-        const data = {
+        await updateSalary({
           amount: parseFloat(form.amount),
           month: parseInt(form.month),
           year: parseInt(form.year),
-        };
-
-        if (currentSalary) {
-          await updateSalary(currentSalary.id, data);
-        } else {
-          await addSalary(data);
-        }
+        });
       }
 
       if (budget !== '') {
