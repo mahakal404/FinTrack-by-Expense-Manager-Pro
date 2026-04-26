@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fintrackexp-app.netlify.app/sitemap.xml
