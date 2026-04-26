@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 
-export default function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }) {
+export default function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText }) {
   if (!isOpen) return null;
 
   return (
@@ -28,9 +28,9 @@ export default function ConfirmDialog({ isOpen, onClose, onConfirm, title, messa
           </button>
           <button
             onClick={() => { onConfirm(); onClose(); }}
-            className="btn btn-danger"
+            className="btn btn-danger font-bold"
           >
-            Delete
+            {confirmText || 'Delete'}
           </button>
         </div>
       </div>

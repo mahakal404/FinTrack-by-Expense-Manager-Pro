@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { LayoutDashboard, Receipt, BarChart3, Target, LogOut, Briefcase, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmDialog from '../UI/ConfirmDialog';
 
 const navItems = [
   { to: '/transactions', icon: Receipt, label: 'Transactions' },
@@ -12,6 +14,7 @@ const navItems = [
 
 export default function Sidebar() {
   const { currentUser, logout } = useAuth();
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -79,7 +82,7 @@ export default function Sidebar() {
             </div>
           </div>
           <button 
-            onClick={handleLogout}
+            onClick={() => setShowLogoutWarning(true)}
             title="Log out"
             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
           >
@@ -87,6 +90,15 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showLogoutWarning}
+        onClose={() => setShowLogoutWarning(false)}
+        onConfirm={handleLogout}
+        title="Log Out?"
+        message="Are you sure you want to log out of your account? You will need to enter your credentials again to access your dashboard."
+        confirmText="Yes, Log Out"
+      />
     </aside>
   );
 }

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { Settings as SettingsIcon, Save, CalendarDays, RefreshCw, LogOut } from 'lucide-react';
 import Card from '../components/UI/Card';
+import ConfirmDialog from '../components/UI/ConfirmDialog';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
@@ -20,6 +21,7 @@ export default function Settings() {
      monthlySalary: 0
   });
   const [saving, setSaving] = useState(false);
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -201,7 +203,7 @@ export default function Settings() {
           <span className="settings-logout-divider__text">Account</span>
         </div>
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutWarning(true)}
           disabled={loggingOut}
           className="settings-logout-btn"
           id="settings-logout-button"
@@ -214,6 +216,14 @@ export default function Settings() {
         </p>
       </div>
 
+      <ConfirmDialog
+        isOpen={showLogoutWarning}
+        onClose={() => setShowLogoutWarning(false)}
+        onConfirm={handleLogout}
+        title="Log Out?"
+        message="Are you sure you want to log out of your account? You will need to enter your credentials again to access your dashboard."
+        confirmText="Yes, Log Out"
+      />
     </div>
   );
 }
