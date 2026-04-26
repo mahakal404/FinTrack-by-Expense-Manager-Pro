@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { PieChart, FileText, Lock, ArrowRight, Sparkles, Receipt } from 'lucide-react';
+import { PieChart, FileText, Lock, ArrowRight, Sparkles, Receipt, BookText } from 'lucide-react';
 
 export default function LandingPage() {
   const features = [
@@ -16,6 +16,13 @@ export default function LandingPage() {
       icon: Receipt,
       color: 'text-blue-500',
       bg: 'bg-blue-500/10'
+    },
+    {
+      title: 'Smart Ledger',
+      description: 'Automatically tracks every entry, generates balance sheets, and gives you a real-time financial snapshot with zero effort.',
+      icon: BookText,
+      color: 'text-violet-500',
+      bg: 'bg-violet-500/10'
     },
     {
       title: 'PDF Reports',
@@ -36,9 +43,10 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-900 overflow-hidden font-sans text-slate-100 flex flex-col">
       {/* Decorative Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-violet-950/20 pointer-events-none z-0" />
       <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-500/20 blur-[120px] pointer-events-none z-0" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/20 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed top-[40%] left-[30%] w-[30%] h-[30%] rounded-full bg-violet-500/10 blur-[120px] pointer-events-none z-0" />
 
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between w-full max-w-7xl mx-auto px-6 py-6 lg:px-8">
@@ -60,7 +68,7 @@ export default function LandingPage() {
           </div>
           <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-8 leading-tight">
             Take Control of <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-indigo-400">Your Finances</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-indigo-400 to-violet-400">Your Finances</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-400 mb-12">
             Track income, manage expenses, and achieve your savings goals with a beautifully designed, local-first dashboard built for modern professionals.
@@ -68,7 +76,7 @@ export default function LandingPage() {
           <div className="flex justify-center">
             <Link 
               to="/login" 
-              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold rounded-2xl text-lg transition-all transform hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.8)] flex items-center gap-3"
+              className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-indigo-500 hover:from-emerald-400 hover:to-indigo-400 text-white font-bold rounded-2xl text-lg transition-all transform hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.5)] flex items-center gap-3"
             >
               Get Started for Free
               <ArrowRight size={20} />
@@ -83,7 +91,7 @@ export default function LandingPage() {
             <p className="mt-4 text-slate-400 max-w-xl mx-auto">No confusing spreadsheets. Just clean, actionable insights that help you grow your wealth effortlessly.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-3xl p-8 hover:bg-slate-800/60 transition-colors">
                 <div className={`w-14 h-14 rounded-2xl ${feature.bg} flex items-center justify-center mb-6`}>
@@ -117,11 +125,18 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800/60 relative z-10 bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
             <img src="/app-logo.webp" alt="Logo" className="w-6 h-6 grayscale" />
             <span className="text-sm font-semibold text-slate-400">FinTrack Pro © {new Date().getFullYear()}</span>
           </div>
+          
+          <div className="text-xs font-medium text-emerald-500/60 tracking-wider uppercase flex items-center gap-1.5">
+             <Sparkles size={12} className="text-emerald-500/40" />
+             Built by R-Labs
+             <Sparkles size={12} className="text-emerald-500/40" />
+          </div>
+
           <p className="text-sm text-slate-500">Built with precision for modern wealth management.</p>
         </div>
       </footer>
