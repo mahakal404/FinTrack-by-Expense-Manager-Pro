@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, CheckCircle2, AlertCircle, ArrowRight, Info } from 'lucide-react';
 
 export default function Login() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -25,7 +25,7 @@ export default function Login() {
 
     try {
       let user;
-      if (isSignUp) {
+      if (!isLogin) {
         const res = await signup(email, password, name);
         user = res.user;
       } else {
@@ -91,10 +91,17 @@ export default function Login() {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold text-white tracking-tight">
-              {isSignUp ? 'Create an account' : 'Welcome back'}
+              {!isLogin ? 'Create an account' : 'Welcome back'}
             </h2>
             <p className="mt-3 text-slate-400 text-sm">
-              {isSignUp ? 'Start managing your expenses today.' : 'Please enter your details to sign in.'}
+              {!isLogin ? 'Start managing your expenses today.' : 'Please enter your details to sign in.'}
+            </p>
+          </div>
+
+          <div className="bg-sky-500/10 border border-sky-500/30 text-sky-400 px-4 py-3 rounded-xl flex items-start gap-3">
+            <Info size={20} className="shrink-0 mt-0.5 text-sky-500" />
+            <p className="text-sm leading-relaxed font-medium">
+              New to FinTrack? Please create an account first to start managing your expenses.
             </p>
           </div>
 
@@ -105,8 +112,25 @@ export default function Login() {
             </div>
           )}
 
+          <div className="flex bg-slate-800/50 p-1.5 rounded-xl mt-6">
+             <button
+                type="button"
+                onClick={() => setIsLogin(true)}
+                className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${isLogin ? 'bg-slate-700 text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
+             >
+                Sign In
+             </button>
+             <button
+                type="button"
+                onClick={() => setIsLogin(false)}
+                className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${!isLogin ? 'bg-slate-700 text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
+             >
+                Create Account
+             </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
-            {isSignUp && (
+            {!isLogin && (
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Full Name</label>
                 <div className="relative">
@@ -164,7 +188,7 @@ export default function Login() {
               disabled={loading}
               className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isSignUp ? 'Sign up' : 'Sign in'}
+              {!isLogin ? 'Sign up' : 'Sign in'}
               <ArrowRight size={18} />
             </button>
           </form>
@@ -208,15 +232,6 @@ export default function Login() {
             </div>
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-400">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="font-semibold text-emerald-500 hover:text-emerald-400 transition-colors focus:outline-none"
-            >
-              {isSignUp ? 'Sign in' : 'Sign up'}
-            </button>
-          </p>
         </div>
       </div>
     </div>
